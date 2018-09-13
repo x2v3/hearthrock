@@ -26,7 +26,16 @@ namespace Hearthrock.Server.Bots
         {
             try
             {
-                throw new NotImplementedException();
+
+                if (scene.PlayOptions.Any())
+                {
+                    // return a random action
+                    return RockAction.Create(scene.PlayOptions[new Random().Next(0, scene.PlayOptions.Count - 1)]);
+                }
+                else
+                {
+                    return RockAction.Create();
+                }
             }
             catch (Exception e)
             {

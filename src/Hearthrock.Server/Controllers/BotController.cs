@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Hearthrock.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Hearthrock.Server.Controllers
 {
@@ -23,7 +24,7 @@ namespace Hearthrock.Server.Controllers
         [HttpPost("mulligan"), HttpGet("mulligan")]
         public async Task<ActionResult> Mulligan([FromBody] RockScene scene)
         {
-            return Json(await Task.FromResult(GetMulliganAction(scene)));
+            return Rock(await Task.FromResult(GetMulliganAction(scene)));
         }
 
         /// <summary>
@@ -34,19 +35,22 @@ namespace Hearthrock.Server.Controllers
         [HttpGet("play"),HttpPost("play")]
         public async Task<ActionResult> Play([FromBody]RockScene scene)
         {
-            return Json(await Task.FromResult(GetBestPlayAction(scene)));
+            return Rock(await Task.FromResult(GetBestPlayAction(scene)));
         }
 
         [HttpGet("trace"), HttpPost("trace")]
-        public async Task<ActionResult> Trace([FromBody]RockScene scene)
+        public async Task<ActionResult> Trace([FromBody]Dictionary<string,string> scene)
         {
             await Task.Run(() => DoTrace(scene));
             return Ok();
         }
 
-        private void DoTrace(RockScene scene)
+        private void DoTrace(Dictionary<string,string> info)
         {
-            bot.ReportActionResult(scene);
+            foreach (var k in info.Keys)
+            {
+                logger.LogDebug($"Trace:{k}:{info[k]}");
+            }
         }
 
         private RockAction GetBestPlayAction(RockScene scene)
@@ -61,5 +65,18 @@ namespace Hearthrock.Server.Controllers
             logger.LogWarning($"Mulligan:{a.Objects}");
             return a;
         }
+
+        protected ContentResult Rock(object o)
+        {
+            var s = JsonConvert.SerializeObject(o);
+            var r = new ContentResult
+            {
+                Content = s,
+                ContentType = "applicatioin/json",
+                StatusCode = 200
+            };
+            return r;
+        }
+        
     }
 }
