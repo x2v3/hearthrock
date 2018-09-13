@@ -43,6 +43,7 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Hearthrock.Stone.12.0.0.22\lib\net20\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>

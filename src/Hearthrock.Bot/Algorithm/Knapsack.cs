@@ -25,7 +25,7 @@ namespace Hearthrock.Bot.Algorithm
             }
 
             int lastValue = values[values.Length - 1];
-            int[] resuValues = values.Slice(0, values.Length - 1);
+            int[] resuValues = values;
 
             if (space - lastValue >= 0)
             {
