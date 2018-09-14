@@ -19,5 +19,10 @@ namespace Hearthrock.Server.Bots
         {
             return svcCollection.AddSingleton<IRockBot, RockBot>();
         }
+        
+        public static IServiceCollection AddMyExperimentBot(this IServiceCollection svcCollection)
+        {
+            return svcCollection.AddSingleton<IRockBot,MyExperimentBot>();
+        }
     }
 }

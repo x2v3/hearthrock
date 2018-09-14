@@ -6,7 +6,7 @@ using Hearthrock.Contracts;
 
 namespace Hearthrock.Server.Bots
 {
-    public class SimpleMonteCarloBot:IRockBot
+    public class MyExperimentBot:IRockBot
     {
         public RockAction GetMulliganAction(RockScene scene)
         {
