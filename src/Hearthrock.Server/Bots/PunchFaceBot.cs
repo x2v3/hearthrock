@@ -44,7 +44,7 @@ namespace Hearthrock.Server.Bots
                 }
                 else 
                 {
-                    return RockAction.Create(scene.PlayOptions.FirstOrDefault(o=>o[0]!=powerId));
+                    return RockAction.Create(scene.PlayOptions.FirstOrDefault());
                 }
             }
         }
