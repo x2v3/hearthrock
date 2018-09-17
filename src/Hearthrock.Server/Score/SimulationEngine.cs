@@ -47,5 +47,10 @@ namespace Hearthrock.Server.Score
             newScene.Self.Minions.Add(m);
         }
 
+        public void SimulateCastSpell(RockScene newScene, RockCard spellCard, int? target)
+        {
+
+        }
+
     }
 }

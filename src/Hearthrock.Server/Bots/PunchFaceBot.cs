@@ -38,7 +38,7 @@ namespace Hearthrock.Server.Bots
             {
                 var powerId = GetSelfPowerId(scene);
                 var action = RockAction.Create(scene.PlayOptions.FirstOrDefault(o=>o[0]!=powerId));
-                if (action != null)
+                if (action.Objects != null)
                 {
                     return action;
                 }
