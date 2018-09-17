@@ -9,10 +9,10 @@ namespace Hearthrock.Server.Score
     public static class RockSceneScoreExtensions
     {
         private const double HeroHealthFactor=2;
-        private const double LifeStealFactor = 0.1;
-        private const double WindfuryFactor = 0.2;
-        private const double TauntFactor = 0.1;
-        private const double DivineShieldFactor = 0.3;
+        private const double LifeStealFactor = 0;
+        private const double WindfuryFactor = 0;
+        private const double TauntFactor = 0.2;
+        private const double DivineShieldFactor = 0;
 
         public static double GetScore(this RockScene scene)
         {

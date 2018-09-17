@@ -23,21 +23,28 @@ namespace Hearthrock.Server.Score
                         switch (card.CardType)
                         {
                             case RockCardType.Minion:
-                                var m =new RockMinion()
-                                {
-                                    BaseHealth = card.Health,
-                                    Damage = card.Damage,
-                                    HasTaunt = card.HasTaunt,
-                                    
-                                };
+                                SimulateDropMinion(newScene,card);
                                 break;
-
+                            default:
+                                break;
                         }
                     }
                 }
             }
 
             return newScene;
+        }
+
+        public void SimulateDropMinion(RockScene newScene, RockCard card)
+        {
+            
+            var m = new RockMinion()
+            {
+                BaseHealth = card.Health,
+                Damage = card.Damage,
+                HasTaunt = card.HasTaunt,
+            };
+            newScene.Self.Minions.Add(m);
         }
 
     }
