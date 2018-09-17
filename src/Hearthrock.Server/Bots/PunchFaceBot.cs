@@ -36,7 +36,16 @@ namespace Hearthrock.Server.Bots
             }
             else
             {
-                return RockAction.Create(scene.PlayOptions[new Random().Next(0, scene.PlayOptions.Count - 1)]);
+                var powerId = GetSelfPowerId(scene);
+                var action = RockAction.Create(scene.PlayOptions.FirstOrDefault(o=>o[0]!=powerId));
+                if (action != null)
+                {
+                    return action;
+                }
+                else 
+                {
+                    return RockAction.Create(scene.PlayOptions.FirstOrDefault(o=>o[0]!=powerId));
+                }
             }
         }
 
@@ -48,6 +57,11 @@ namespace Hearthrock.Server.Bots
         private int GetOpponentHeroId(RockScene scene)
         {
             return scene.Opponent.Hero.RockId;
+        }
+
+        public int GetSelfPowerId(RockScene scene)
+        {
+            return scene.Self.Power.RockId;
         }
     }
 }

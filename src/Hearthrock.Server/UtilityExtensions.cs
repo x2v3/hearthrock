@@ -10,7 +10,7 @@ namespace Hearthrock.Server
     {
         public static string ToItemsString(this IEnumerable<int> items)
         {
-            return string.Join(",", items);
+            return items==null?"": string.Join(",", items);
         }
     }
 }
