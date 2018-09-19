@@ -26,8 +26,8 @@ namespace Hearthrock.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            //services.AddMyExperimentBot();
-            services.AddPunchFaceBot();
+            services.AddMyExperimentBot();
+            //services.AddPunchFaceBot();
             //services.AddBuiltinBot();
         }
 

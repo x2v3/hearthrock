@@ -13,6 +13,15 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="SabberStoneCore">
+      <HintPath>..\packages\SabberStone\SabberStoneCore.dll</HintPath>
+    </Reference>
+    <Reference Include="SabberStoneCoreAi">
+      <HintPath>..\packages\SabberStone\SabberStoneCoreAi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
   <Import Project="..\Hearthrock.Contracts\Hearthrock.Contracts.projitems" Label="Shared" />
 
   <Import Project="..\Hearthrock.Bot\Hearthrock.Bot.projitems" Label="Shared" />

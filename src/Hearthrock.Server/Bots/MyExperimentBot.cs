@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hearthrock.Contracts;
+using Hearthrock.Server.Score;
 
 namespace Hearthrock.Server.Bots
 {
@@ -26,7 +27,17 @@ namespace Hearthrock.Server.Bots
         {
             try
             {
-                throw new NotImplementedException();
+                var engine = new SimulationEngine(scene);
+                var actionScores=new List<KeyValuePair<RockAction,int>>();
+                foreach (var option in scene.PlayOptions)
+                {
+                    var action = RockAction.Create(option);
+                    var score = engine.SimulateAction(action);
+                    actionScores.Add(new KeyValuePair<RockAction, int>(action,score));
+                }
+
+                var bestaction = actionScores.OrderByDescending(a=>a.Value).FirstOrDefault();
+                return bestaction.Key;
             }
             catch (Exception e)
             {
