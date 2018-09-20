@@ -78,12 +78,9 @@ namespace Hearthrock.Server.Score
 
         private int CalculateGameScore(Game game)
         {
-            var score = new AggroScore();
+            var score = new PlayerScore();
             score.Controller = game.Player1;
-            var p1score = score.Rate();
-            score.Controller = game.Player2;
-            var p2score = score.Rate();
-            return p1score - p2score;
+            return score.Rate();
         }
 
         private Game BuildGameFromScene(RockScene scene)
