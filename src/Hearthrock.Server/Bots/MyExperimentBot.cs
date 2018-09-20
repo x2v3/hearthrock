@@ -31,6 +31,7 @@ namespace Hearthrock.Server.Bots
                 var actionScores=new List<KeyValuePair<RockAction,int>>();
                 foreach (var option in scene.PlayOptions)
                 {
+                    engine.ResetHeroMana();
                     var action = RockAction.Create(option);
                     var score = engine.SimulateAction(action);
                     actionScores.Add(new KeyValuePair<RockAction, int>(action,score));
@@ -58,5 +59,6 @@ namespace Hearthrock.Server.Bots
         {
             //todo log action.
         }
+
     }
 }

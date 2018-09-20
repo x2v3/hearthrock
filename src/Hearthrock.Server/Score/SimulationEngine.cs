@@ -20,22 +20,23 @@ namespace Hearthrock.Server.Score
         public SimulationEngine(RockScene scene)
         {
             currentScene = scene;
+            game = BuildGameFromScene(currentScene);
         }
 
         private RockScene currentScene;
-        private Dictionary<int, int> idMap = new Dictionary<int, int>();
+        private Dictionary<int, IEntity> idMap = new Dictionary<int, IEntity>();
+        private Game game;
 
         public int SimulateAction(RockAction action)
         {
             //var newScene = currentScene.DeepCopy();
-            var game = BuildGameFromScene(currentScene);
-            
+
             var score1 = CalculateGameScore(game);
+            var p1 = game.Player1;
             if (action.Objects.Count == 1)
             {
                 // play out a card.
                 var obj = currentScene.Self.GetObjectById(action.Objects[0]);
-                var p1 = game.Player1;
                 if (obj != null)
                 {
                     if (obj is RockCard card)
@@ -54,10 +55,21 @@ namespace Hearthrock.Server.Score
             }
             else if (action.Objects.Count == 2)
             {
-                var src = currentScene.Self.GetObjectById(action.Objects[0]);
-                var target = currentScene.Self.GetObjectById(action.Objects[1]) ??
-                             currentScene.Opponent.GetObjectById(action.Objects[1]);
+                var src = idMap[action.Objects[0]];
+                var targetRockId = action.Objects[1];
+                var target = idMap[targetRockId];
                 // if src is hero/minion ,do attack
+                if (src is RockCard card)
+                {
+                    if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                    {
+                        game.Process(HeroPowerTask.Any(p1,idMap[targetRockId]));
+                    }
+                    else
+                    {
+                        var gamesrc = idMap[card.RockId];
+                    }
+                }
             }
 
             var score2 = CalculateGameScore(game);
@@ -85,6 +97,9 @@ namespace Hearthrock.Server.Score
                 FillDecksPredictably = true
             };
             var game = new Game(config, true);
+            idMap.Add(scene.Self.Hero.RockId,game.Player1.Hero);
+            idMap.Add(scene.Opponent.Hero.RockId,game.Player2.Hero);
+
             game.StartGame();
             game.Player1.Hero.Health = scene.Self.Hero.Health;
             game.Player2.Hero.Health = scene.Opponent.Hero.Health;
@@ -114,7 +129,7 @@ namespace Hearthrock.Server.Score
                 m.Health = minion.Health;
                 m.AttackDamage = minion.Damage;
                 boardZone.Add(m);
-                idMap.Add(minion.RockId, m.Id);
+                idMap.Add(minion.RockId, m);
             }
         }
 
@@ -123,6 +138,17 @@ namespace Hearthrock.Server.Score
             var card = Cards.FromId(player.Weapon.CardId);
             var weapon = new Weapon(hero.Controller, card, new ConcurrentDictionary<GameTag, int>());
             hero.AddWeapon(weapon);
+            idMap.Add(player.Weapon.RockId,weapon);
+        }
+
+        
+        /// <summary>
+        /// set used mana to 0 for both players.
+        /// </summary>
+        public void ResetHeroMana()
+        {
+            game.Player1.UsedMana = 0;
+            game.Player2.UsedMana = 0;
         }
     }
 }
