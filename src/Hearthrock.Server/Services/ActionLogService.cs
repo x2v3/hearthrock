@@ -57,11 +57,11 @@ namespace Hearthrock.Server.Services
                 connection=new MySqlConnection(connString);
                 connection.Open();
             }
-            var cmd =new MySqlCommand(InsertPlaySql,connection);
+            var cmd =new MySqlCommand(InsertErrorSql,connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
             cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
-            cmd.Parameters.AddWithValue("@action",JsonConvert.SerializeObject(exception));
+            cmd.Parameters.AddWithValue("@exception",JsonConvert.SerializeObject(exception));
             return cmd.ExecuteNonQuery();
         }
 

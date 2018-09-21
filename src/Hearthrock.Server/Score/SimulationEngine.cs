@@ -133,7 +133,7 @@ namespace Hearthrock.Server.Score
         private void AddWeaponForPlayer(Hero hero, RockPlayer player)
         {
             var card = Cards.FromId(player.Weapon.CardId);
-            var weapon = new Weapon(hero.Controller, card, new ConcurrentDictionary<GameTag, int>());
+            var weapon = new Weapon(hero.Controller, card, new Dictionary<GameTag, int>());
             hero.AddWeapon(weapon);
             idMap.Add(player.Weapon.RockId,weapon);
         }
