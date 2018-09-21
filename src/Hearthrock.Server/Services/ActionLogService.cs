@@ -22,7 +22,7 @@ namespace Hearthrock.Server.Services
         private const string InsertPlaySql =
             "insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)";
         private const string InsertErrorSql=
-            "insert into playlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
+            "insert into errorlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
       
 
         public int AddPlayLog(RockScene scene, RockAction action)
