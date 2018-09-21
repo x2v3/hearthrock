@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hearthrock.Server.Bots;
+using Hearthrock.Server.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,10 @@ namespace Hearthrock.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var actionDbConnStr = Configuration.GetSection("DB:PlayLogDB").Get<string>();
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddActionLogService(actionDbConnStr);
             services.AddMyExperimentBot();
             //services.AddPunchFaceBot();
             //services.AddBuiltinBot();

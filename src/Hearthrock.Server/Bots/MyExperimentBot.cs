@@ -4,11 +4,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hearthrock.Contracts;
 using Hearthrock.Server.Score;
+using Hearthrock.Server.Services;
 
 namespace Hearthrock.Server.Bots
 {
     public class MyExperimentBot:IRockBot
     {
+        public MyExperimentBot(ActionLogService logService)
+        {
+            actionLog = logService;
+        }
+
+        private ActionLogService actionLog;
+
         public RockAction GetMulliganAction(RockScene scene)
         {
             var cards = new List<int>();
@@ -38,6 +46,7 @@ namespace Hearthrock.Server.Bots
                 }
 
                 var bestaction = actionScores.OrderByDescending(a=>a.Value).FirstOrDefault();
+                actionLog.AddPlayLogAsyncNoReturn(scene, bestaction.Key);
                 return bestaction.Key;
             }
             catch (Exception e)

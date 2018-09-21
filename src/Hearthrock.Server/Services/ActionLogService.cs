@@ -18,7 +18,9 @@ namespace Hearthrock.Server.Services
 
         private MySqlConnection connection;
         private string connString;
-        private const string InsertSql ="insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)"
+
+        private const string InsertSql =
+            "insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)";
       
 
         public int AddPlayLog(RockScene scene, RockAction action)
@@ -35,5 +37,16 @@ namespace Hearthrock.Server.Services
             cmd.Parameters.AddWithValue("@action",JsonConvert.SerializeObject(action));
             return cmd.ExecuteNonQuery();
         }
+
+        public Task<int> AddPlayLogAsync(RockScene scene, RockAction action)
+        {
+            return Task.FromResult(AddPlayLog(scene, action));
+        }
+
+        public void AddPlayLogAsyncNoReturn(RockScene scene, RockAction action)
+        {
+            Task.Run(() => { AddPlayLog(scene, action); });
+        }
     }
+    
 }
