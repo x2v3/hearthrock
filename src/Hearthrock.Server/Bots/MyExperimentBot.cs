@@ -5,17 +5,20 @@ using System.Threading.Tasks;
 using Hearthrock.Contracts;
 using Hearthrock.Server.Score;
 using Hearthrock.Server.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Hearthrock.Server.Bots
 {
     public class MyExperimentBot:IRockBot
     {
-        public MyExperimentBot(ActionLogService logService)
+        public MyExperimentBot(ActionLogService logService,ILoggerFactory loggerFactory)
         {
             actionLog = logService;
+            consoleLogger = loggerFactory.CreateLogger(this.GetType());
         }
 
         private ActionLogService actionLog;
+        private ILogger consoleLogger;
 
         public RockAction GetMulliganAction(RockScene scene)
         {
@@ -51,7 +54,7 @@ namespace Hearthrock.Server.Bots
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                consoleLogger.LogError(e,"GetPlayAction Error");
                 actionLog.AddErrorLogAsnycNoResult(scene,e);
                 if (scene.PlayOptions.Any())
                 {
