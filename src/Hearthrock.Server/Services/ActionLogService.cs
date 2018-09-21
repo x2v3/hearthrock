@@ -19,8 +19,10 @@ namespace Hearthrock.Server.Services
         private MySqlConnection connection;
         private string connString;
 
-        private const string InsertSql =
+        private const string InsertPlaySql =
             "insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)";
+        private const string InsertErrorSql=
+            "insert into playlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
       
 
         public int AddPlayLog(RockScene scene, RockAction action)
@@ -30,7 +32,7 @@ namespace Hearthrock.Server.Services
                 connection=new MySqlConnection(connString);
                 connection.Open();
             }
-            var cmd =new MySqlCommand(InsertSql,connection);
+            var cmd =new MySqlCommand(InsertPlaySql,connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
             cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
@@ -46,6 +48,31 @@ namespace Hearthrock.Server.Services
         public void AddPlayLogAsyncNoReturn(RockScene scene, RockAction action)
         {
             Task.Run(() => { AddPlayLog(scene, action); });
+        }
+
+        public int AddErrorLog(RockScene scene, Exception exception)
+        {
+            if (connection?.State != ConnectionState.Open)
+            {
+                connection=new MySqlConnection(connString);
+                connection.Open();
+            }
+            var cmd =new MySqlCommand(InsertPlaySql,connection);
+            cmd.Parameters.AddWithValue("@session", scene.SessionId);
+            cmd.Parameters.AddWithValue("@turn", scene.Turn);
+            cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
+            cmd.Parameters.AddWithValue("@action",JsonConvert.SerializeObject(exception));
+            return cmd.ExecuteNonQuery();
+        }
+
+        public Task<int> AddErrorAsync(RockScene scene, Exception exception)
+        {
+            return Task.FromResult(AddErrorLog(scene, exception));
+        }
+
+        public void AddErrorLogAsnycNoResult(RockScene scene, Exception exception)
+        {
+            Task.Run(() => { AddErrorLog(scene, exception); });
         }
     }
     

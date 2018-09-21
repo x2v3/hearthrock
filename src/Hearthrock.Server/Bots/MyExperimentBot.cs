@@ -52,6 +52,7 @@ namespace Hearthrock.Server.Bots
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                actionLog.AddErrorLogAsnycNoResult(scene,e);
                 if (scene.PlayOptions.Any())
                 {
                     // return a random action
