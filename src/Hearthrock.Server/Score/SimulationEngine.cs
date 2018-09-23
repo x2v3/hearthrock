@@ -60,21 +60,40 @@ namespace Hearthrock.Server.Score
                 var targetRockId = action.Objects[1];
                 var target = idMap[targetRockId];
                 // if src is hero/minion ,do attack
-                if (src is RockCard card)
+                if (idMap.Keys.Contains(action.Objects[0]))
                 {
-                    if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                    if (src is RockCard card)
                     {
-                        game.Process(HeroPowerTask.Any(p1,idMap[targetRockId]));
+                        if (card.CardType == RockCardType.Minion)
+                        {
+                            var gamesrc = idMap[card.RockId];
+                            game.Process(MinionAttackTask.Any(game.Player1, gamesrc, target));
+                        }
+                        else
+                        {
+                            var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
+                        }
                     }
-                    else if(card.CardType == RockCardType.Minion)
+                }
+                else
+                {
+                    if (src is RockCard card)
                     {
-                        var gamesrc = idMap[card.RockId];
-                        game.Process(MinionAttackTask.Any(game.Player1,gamesrc,target));
-                    }
-                    else
-                    {
-                        var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                        game.Process(PlayCardTask.SpellTarget(game.Player1,spell,target));
+                        if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                        {
+                            game.Process(HeroPowerTask.Any(p1, idMap[targetRockId]));
+                        }
+                        else if (card.CardType == RockCardType.Minion)
+                        {
+                            var minion = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            game.Process(PlayCardTask.MinionTarget(game.Player1, minion, target));
+                        }
+                        else
+                        {
+                            var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
+                        }
                     }
                 }
             }
@@ -101,12 +120,15 @@ namespace Hearthrock.Server.Score
                 FillDecksPredictably = true
             };
             var game = new Game(config, true);
-            idMap.Add(scene.Self.Hero.RockId,game.Player1.Hero);
-            idMap.Add(scene.Opponent.Hero.RockId,game.Player2.Hero);
+            idMap.Add(scene.Self.Hero.RockId, game.Player1.Hero);
+            idMap.Add(scene.Opponent.Hero.RockId, game.Player2.Hero);
 
             game.StartGame();
-            game.Player1.Hero.Health = scene.Self.Hero.Health;
-            game.Player2.Hero.Health = scene.Opponent.Hero.Health;
+            //todo hearthrock does not pass armor\base-health to server 
+            game.Player1.Hero.BaseHealth = 30;
+            game.Player2.Hero.BaseHealth = 30;
+            game.Player1.Hero.Damage = 30 - scene.Self.Hero.Health;
+            game.Player2.Hero.Damage = 30 - scene.Opponent.Hero.Health;
             game.Player1.BaseMana = scene.Self.Resources;
             game.Player2.BaseMana = scene.Opponent.Resources;
 
@@ -140,14 +162,14 @@ namespace Hearthrock.Server.Score
         private void AddWeaponForPlayer(Hero hero, RockPlayer player)
         {
             var card = Cards.FromId(player.Weapon.CardId);
-            var weapon = (Weapon) Entity.FromCard(hero.Controller, card);
+            var weapon = (Weapon)Entity.FromCard(hero.Controller, card);
             weapon.AttackDamage = player.Weapon.Damage;
             weapon.Durability = player.Weapon.Health;
             hero.AddWeapon(weapon);
-            idMap.Add(player.Weapon.RockId,hero.Weapon);
+            idMap.Add(player.Weapon.RockId, hero.Weapon);
         }
 
-        
+
         /// <summary>
         /// set used mana to 0 for both players.
         /// </summary>
