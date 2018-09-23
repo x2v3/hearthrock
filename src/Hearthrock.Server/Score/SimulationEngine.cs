@@ -11,6 +11,7 @@ using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Model.Zones;
 using SabberStoneCore.Tasks.PlayerTasks;
+using SabberStoneCore.Tasks.SimpleTasks;
 using SabberStoneCoreAi.Score;
 
 namespace Hearthrock.Server.Score
@@ -29,7 +30,7 @@ namespace Hearthrock.Server.Score
 
         public int SimulateAction(RockAction action)
         {
-            //var newScene = currentScene.DeepCopy();
+            //todo  add slot support.
 
             var score1 = CalculateGameScore(game);
             var p1 = game.Player1;
@@ -55,7 +56,7 @@ namespace Hearthrock.Server.Score
             }
             else if (action.Objects.Count == 2)
             {
-                var src = idMap[action.Objects[0]];
+                var src = currentScene.Self.GetObjectById(action.Objects[0]);
                 var targetRockId = action.Objects[1];
                 var target = idMap[targetRockId];
                 // if src is hero/minion ,do attack
@@ -65,9 +66,15 @@ namespace Hearthrock.Server.Score
                     {
                         game.Process(HeroPowerTask.Any(p1,idMap[targetRockId]));
                     }
-                    else
+                    else if(card.CardType == RockCardType.Minion)
                     {
                         var gamesrc = idMap[card.RockId];
+                        game.Process(MinionAttackTask.Any(game.Player1,gamesrc,target));
+                    }
+                    else
+                    {
+                        var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                        game.Process(PlayCardTask.SpellTarget(game.Player1,spell,target));
                     }
                 }
             }
