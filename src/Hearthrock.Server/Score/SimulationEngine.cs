@@ -31,7 +31,7 @@ namespace Hearthrock.Server.Score
         public int SimulateAction(RockAction action)
         {
             //todo  add slot support.
-
+            
             var score1 = CalculateGameScore(game);
             var p1 = game.Player1;
             if (action.Objects.Count == 1)
@@ -74,6 +74,12 @@ namespace Hearthrock.Server.Score
                             var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
                             game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
                         }
+                    }
+                    else if (src is RockMinion minion)
+                    {
+                        var gamesrc = idMap[minion.RockId];
+                        game.Process(MinionAttackTask.Any(game.Player1, gamesrc, target));
+
                     }
                 }
                 else
@@ -143,6 +149,9 @@ namespace Hearthrock.Server.Score
             {
                 AddWeaponForPlayer(game.Player2.Hero, scene.Opponent);
             }
+            
+            game.Process(EndTurnTask.Any(game.Player1));
+            game.Process(EndTurnTask.Any(game.Player2));
             return game;
         }
 

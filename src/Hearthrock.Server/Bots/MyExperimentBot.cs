@@ -38,10 +38,10 @@ namespace Hearthrock.Server.Bots
         {
             try
             {
-                var engine = new SimulationEngine(scene);
                 var actionScores=new List<KeyValuePair<RockAction,int>>();
                 foreach (var option in scene.PlayOptions)
                 {
+                    var engine = new SimulationEngine(scene);
                     engine.ResetHeroMana();
                     var action = RockAction.Create(option);
                     var score = engine.SimulateAction(action);

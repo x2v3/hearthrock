@@ -58,7 +58,7 @@ namespace Hearthrock.Server.Score
                 return 999999;
             }
 
-            var healthRate = (HeroHp + (30 - OpHeroHp)) * HeroHpScore;
+            var healthRate = (HeroHp+ Controller.Hero.Armor + (30 - OpHeroHp - Controller.Opponent.Hero.Armor)) * HeroHpScore;
             var attackRate = HeroAtk * HeroAttackScore;
             return healthRate + attackRate;
         }
