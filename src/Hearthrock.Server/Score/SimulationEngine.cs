@@ -49,7 +49,7 @@ namespace Hearthrock.Server.Score
                         else
                         {
                             var minionCard = Generic.DrawCard(p1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(p1, minionCard));
+                            game.Process(PlayCardTask.Any(p1, minionCard,null,action.Slot));
                         }
                     }
                 }
@@ -93,7 +93,7 @@ namespace Hearthrock.Server.Score
                         else if (card.CardType == RockCardType.Minion)
                         {
                             var minion = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.MinionTarget(game.Player1, minion, target));
+                            game.Process(PlayCardTask.Any(game.Player1, minion, target,action.Slot));
                         }
                         else
                         {

@@ -9,9 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Hearthrock.Server.Bots
 {
-    public class MyExperimentBot:IRockBot
+    public class MyExperimentBot : IRockBot
     {
-        public MyExperimentBot(ActionLogService logService,ILoggerFactory loggerFactory)
+        public MyExperimentBot(ActionLogService logService, ILoggerFactory loggerFactory)
         {
             actionLog = logService;
             consoleLogger = loggerFactory.CreateLogger(this.GetType());
@@ -38,28 +38,45 @@ namespace Hearthrock.Server.Bots
         {
             try
             {
-                var actionScores=new List<KeyValuePair<RockAction,int>>();
+                var actionScores = new List<KeyValuePair<RockAction, int>>();
                 foreach (var option in scene.PlayOptions)
                 {
-                    var engine = new SimulationEngine(scene);
-                    engine.ResetHeroMana();
-                    var action = RockAction.Create(option);
-                    var score = engine.SimulateAction(action);
-                    actionScores.Add(new KeyValuePair<RockAction, int>(action,score));
+                    if (scene.Self.GetObjectById(option[0]) is RockCard c &&c.CardType== RockCardType.Minion)
+                    {
+                        for (int i = 0; i <= scene.Self.Minions.Count; i++)
+                        {
+
+                            var engine = new SimulationEngine(scene);
+                            engine.ResetHeroMana();
+                            var action = RockAction.Create(option);
+                            action.Slot = i;
+                            var score = engine.SimulateAction(action);
+                            actionScores.Add(new KeyValuePair<RockAction, int>(action, score));
+                        }
+                    }
+                    else
+                    {
+                        var engine = new SimulationEngine(scene);
+                        engine.ResetHeroMana();
+                        var action = RockAction.Create(option);
+                        var score = engine.SimulateAction(action);
+                        actionScores.Add(new KeyValuePair<RockAction, int>(action, score));
+
+                    }
                 }
 
-                var bestaction = actionScores.OrderByDescending(a=>a.Value).FirstOrDefault();
+                var bestaction = actionScores.OrderByDescending(a => a.Value).FirstOrDefault();
                 actionLog.AddPlayLogAsyncNoReturn(scene, bestaction.Key);
                 return bestaction.Key;
             }
             catch (Exception e)
             {
-                consoleLogger.LogError(e,"GetPlayAction Error");
-                actionLog.AddErrorLogAsnycNoResult(scene,e);
+                consoleLogger.LogError(e, "GetPlayAction Error");
+                actionLog.AddErrorLogAsnycNoResult(scene, e);
                 if (scene.PlayOptions.Any())
                 {
                     // return a random action
-                    return RockAction.Create(scene.PlayOptions[new Random().Next(0,scene.PlayOptions.Count-1)]);
+                    return RockAction.Create(scene.PlayOptions[new Random().Next(0, scene.PlayOptions.Count - 1)]);
                 }
                 else
                 {
