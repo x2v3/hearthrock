@@ -85,6 +85,11 @@ namespace Hearthrock.Server.Bots
             }
         }
 
+        public RockAction GetPlayAction2(RockScene scene)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ReportActionResult(RockScene scene)
         {
             //todo log action.

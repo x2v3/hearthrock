@@ -31,7 +31,7 @@ namespace Hearthrock.Server.Score
         public int SimulateAction(RockAction action)
         {
             //todo  add slot support.
-            
+
             var score1 = CalculateGameScore(game);
             var p1 = game.Player1;
             if (action.Objects.Count == 1)
@@ -49,7 +49,7 @@ namespace Hearthrock.Server.Score
                         else
                         {
                             var minionCard = Generic.DrawCard(p1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(p1, minionCard,null,action.Slot));
+                            game.Process(PlayCardTask.Any(p1, minionCard, null, action.Slot));
                         }
                     }
                 }
@@ -71,7 +71,8 @@ namespace Hearthrock.Server.Score
                         }
                         else
                         {
-                            var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                            var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
                             game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
                         }
                     }
@@ -92,12 +93,14 @@ namespace Hearthrock.Server.Score
                         }
                         else if (card.CardType == RockCardType.Minion)
                         {
-                            var minion = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(game.Player1, minion, target,action.Slot));
+                            var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                            var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            game.Process(PlayCardTask.Any(game.Player1, minion, target, action.Slot));
                         }
                         else
                         {
-                            var spell = Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                            var spell = handSpell ??  Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
                             game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
                         }
                     }
@@ -140,6 +143,9 @@ namespace Hearthrock.Server.Score
 
             AddMinionsForPlayer(game.Player1.BoardZone, scene.Self.Minions);
             AddMinionsForPlayer(game.Player2.BoardZone, scene.Opponent.Minions);
+
+            AddHandCardsForPlayer(game.Player1, scene.Self.Cards);
+
             if (scene.Self.HasWeapon)
             {
                 AddWeaponForPlayer(game.Player1.Hero, scene.Self);
@@ -149,7 +155,7 @@ namespace Hearthrock.Server.Score
             {
                 AddWeaponForPlayer(game.Player2.Hero, scene.Opponent);
             }
-            
+
             game.Process(EndTurnTask.Any(game.Player1));
             game.Process(EndTurnTask.Any(game.Player2));
             return game;
@@ -176,6 +182,14 @@ namespace Hearthrock.Server.Score
             weapon.Durability = player.Weapon.Health;
             hero.AddWeapon(weapon);
             idMap.Add(player.Weapon.RockId, hero.Weapon);
+        }
+
+        private void AddHandCardsForPlayer(Controller player, List<RockCard> cards)
+        {
+            foreach (var card in cards)
+            {
+                player.HandZone.Add(Generic.DrawCard(player, Cards.FromId(card.CardId)));
+            }
         }
 
 
