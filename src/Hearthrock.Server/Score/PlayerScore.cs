@@ -40,7 +40,7 @@ namespace Hearthrock.Server.Score
                            this.OpMinionTotHealthTaunt * TauntMinionHpAdditionalScore;
             var opAttack = this.OpMinionTotAtk * MinionAttackScore;
             rate += health;
-            rate += health;
+            rate += attack;
             rate -= opHealth;
             rate -= opAttack;
             return rate;
