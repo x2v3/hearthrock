@@ -107,6 +107,7 @@ namespace Hearthrock.Server.Score
                 }
             }
 
+            game.Process(EndTurnTask.Any(game.Player1));
             var score2 = CalculateGameScore(game);
             return score2 - score1;
         }
