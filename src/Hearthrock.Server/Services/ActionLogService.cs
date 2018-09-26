@@ -61,7 +61,14 @@ namespace Hearthrock.Server.Services
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
             cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
-            cmd.Parameters.AddWithValue("@exception",JsonConvert.SerializeObject(exception));
+            try
+            {
+                cmd.Parameters.AddWithValue("@exception",JsonConvert.SerializeObject(exception));
+            }
+            catch (Exception e)
+            {
+                cmd.Parameters.AddWithValue("@exception",DBNull.Value);
+            }
             return cmd.ExecuteNonQuery();
         }
 
