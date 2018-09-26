@@ -187,6 +187,10 @@ namespace Hearthrock.Server.Score
 
         private void AddHandCardsForPlayer(Controller player, List<RockCard> cards)
         {
+            foreach (var c in player.HandZone)
+            {
+                player.HandZone.Remove(c);
+            }
             foreach (var card in cards)
             {
                 player.HandZone.Add(Generic.DrawCard(player, Cards.FromId(card.CardId)));
