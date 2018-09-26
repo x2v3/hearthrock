@@ -10,6 +10,7 @@ using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Model.Zones;
+using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using SabberStoneCore.Tasks.SimpleTasks;
 using SabberStoneCoreAi.Score;
@@ -28,7 +29,7 @@ namespace Hearthrock.Server.Score
         private Dictionary<int, IEntity> idMap = new Dictionary<int, IEntity>();
         private Game game;
 
-        public int SimulateAction(RockAction action)
+        public int SimulateAction(RockAction action,bool simulateFollowingOptions=false)
         {
             //todo  add slot support.
 
@@ -107,15 +108,35 @@ namespace Hearthrock.Server.Score
                 }
             }
 
+            if (simulateFollowingOptions)
+            {
+
+            }
             game.Process(EndTurnTask.Any(game.Player1));
             var score2 = CalculateGameScore(game);
             return score2 - score1;
         }
 
+        private Game FindBestFollowingResult(Game g)
+        {
+            throw new NotImplementedException();
+            var gameCopy = g.Clone();
+            var beginScore = CalculateGameScore(gameCopy);
+            var possiblities = new List<KeyValuePair<Game,int>>();
+            var options = gameCopy.Player1.Options();
+            if (options.Count == 0)
+            {
+                return gameCopy;
+            }
+            foreach (var option in gameCopy.Player1.Options())
+            {
+                
+            }
+        }
+
         private int CalculateGameScore(Game game)
         {
-            var score = new PlayerScore();
-            score.Controller = game.Player1;
+            var score = new PlayerScore {Controller = game.Player1};
             return score.Rate();
         }
 
@@ -156,9 +177,7 @@ namespace Hearthrock.Server.Score
             {
                 AddWeaponForPlayer(game.Player2.Hero, scene.Opponent);
             }
-
-            game.Process(EndTurnTask.Any(game.Player1));
-            game.Process(EndTurnTask.Any(game.Player2));
+            
             return game;
         }
 
@@ -168,9 +187,14 @@ namespace Hearthrock.Server.Score
             {
                 var card = Cards.FromId(minion.CardId);
                 var m = (Minion)Entity.FromCard(boardZone.Controller, card);
-                m.Health = minion.Health;
-                m.AttackDamage = minion.Damage;
                 boardZone.Add(m);
+                m.Reset();
+                m.BaseHealth = minion.BaseHealth;
+                m.Health = minion.Health;
+                // hearth rock does not pass damage data to server.
+                var possibleDamage=minion.BaseHealth - minion.Health;
+                m.Damage = possibleDamage >= 0 ? possibleDamage : 0;
+                m.AttackDamage = minion.Damage;
                 idMap.Add(minion.RockId, m);
             }
         }
