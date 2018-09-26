@@ -68,6 +68,7 @@ namespace Hearthrock.Server.Services
             catch (Exception e)
             {
                 cmd.Parameters.AddWithValue("@exception",DBNull.Value);
+                Console.WriteLine($"Write error log to db error:{e.Message}");
             }
             return cmd.ExecuteNonQuery();
         }
