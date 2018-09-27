@@ -29,7 +29,7 @@ namespace Hearthrock.Server.Score
         private Dictionary<int, IEntity> idMap = new Dictionary<int, IEntity>();
         private Game game;
 
-        public int SimulateAction(RockAction action,bool simulateFollowingOptions=false)
+        public int SimulateAction(RockAction action, bool simulateFollowingOptions = true)
         {
             //todo  add slot support.
 
@@ -101,7 +101,7 @@ namespace Hearthrock.Server.Score
                         else
                         {
                             var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
-                            var spell = handSpell ??  Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
                             game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
                         }
                     }
@@ -110,33 +110,43 @@ namespace Hearthrock.Server.Score
 
             if (simulateFollowingOptions)
             {
-
+                var bestResult = FindBestFollowingResult(game);
+                var score2 = CalculateGameScore(bestResult);
+                game.Process(EndTurnTask.Any(game.Player1));
+                return score2 - score1;
             }
-            game.Process(EndTurnTask.Any(game.Player1));
-            var score2 = CalculateGameScore(game);
-            return score2 - score1;
+            else
+            {
+                game.Process(EndTurnTask.Any(game.Player1));
+                var score2 = CalculateGameScore(game);
+                return score2 - score1;
+            }
         }
 
         private Game FindBestFollowingResult(Game g)
         {
-            throw new NotImplementedException();
-            var gameCopy = g.Clone();
-            var beginScore = CalculateGameScore(gameCopy);
-            var possiblities = new List<KeyValuePair<Game,int>>();
-            var options = gameCopy.Player1.Options();
+            var beginScore = CalculateGameScore(g);
+            var possiblities = new List<KeyValuePair<Game, int>>();
+            var options = g.Player1.Options();
             if (options.Count == 0)
             {
-                return gameCopy;
+                return g;
             }
-            foreach (var option in gameCopy.Player1.Options())
+            foreach (var option in options)
             {
-                
+                var gameCopy = g.Clone();
+                gameCopy.Process(option);
+                var child = FindBestFollowingResult(gameCopy);
+                var childScore = CalculateGameScore(child);
+                possiblities.Add(new KeyValuePair<Game, int>(child, childScore - beginScore));
             }
+
+            return possiblities.OrderBy(k => k.Value).FirstOrDefault().Key;
         }
 
         private int CalculateGameScore(Game game)
         {
-            var score = new PlayerScore {Controller = game.Player1};
+            var score = new PlayerScore { Controller = game.Player1 };
             return score.Rate();
         }
 
@@ -148,13 +158,13 @@ namespace Hearthrock.Server.Score
                 Player1HeroClass = scene.Self.Hero.Class.ToSabberCardClass(),
                 Player2HeroClass = scene.Opponent.Hero.Class.ToSabberCardClass(),
                 FillDecks = true,
-                FillDecksPredictably = true
+                FillDecksPredictably = true,
+                SkipMulligan = true,
             };
             var game = new Game(config, true);
             idMap.Add(scene.Self.Hero.RockId, game.Player1.Hero);
             idMap.Add(scene.Opponent.Hero.RockId, game.Player2.Hero);
 
-            game.StartGame();
             //todo hearthrock does not pass armor\base-health to server 
             game.Player1.Hero.BaseHealth = 30;
             game.Player2.Hero.BaseHealth = 30;
@@ -177,7 +187,9 @@ namespace Hearthrock.Server.Score
             {
                 AddWeaponForPlayer(game.Player2.Hero, scene.Opponent);
             }
-            
+
+            game.StartGame();
+            game.MainReady();
             return game;
         }
 
@@ -192,7 +204,7 @@ namespace Hearthrock.Server.Score
                 m.BaseHealth = minion.BaseHealth;
                 m.Health = minion.Health;
                 // hearth rock does not pass damage data to server.
-                var possibleDamage=minion.BaseHealth - minion.Health;
+                var possibleDamage = minion.BaseHealth - minion.Health;
                 m.Damage = possibleDamage >= 0 ? possibleDamage : 0;
                 m.AttackDamage = minion.Damage;
                 idMap.Add(minion.RockId, m);
@@ -211,7 +223,7 @@ namespace Hearthrock.Server.Score
 
         private void AddHandCardsForPlayer(Controller player, List<RockCard> cards)
         {
-            while (player.HandZone.Count>0)
+            while (player.HandZone.Count > 0)
             {
                 player.HandZone.Remove(player.HandZone[0]);
             }
