@@ -13,6 +13,7 @@ using SabberStoneCore.Model.Zones;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using SabberStoneCore.Tasks.SimpleTasks;
+using SabberStoneCoreAi.Nodes;
 using SabberStoneCoreAi.Score;
 
 namespace Hearthrock.Server.Score
@@ -28,11 +29,11 @@ namespace Hearthrock.Server.Score
         private RockScene currentScene;
         private Dictionary<int, IEntity> idMap = new Dictionary<int, IEntity>();
         private Game game;
+        private int maxSimulationDepth = 10;
 
-        public int SimulateAction(RockAction action, bool simulateFollowingOptions = true)
+        public int SimulateAction(RockAction action, bool simulateFollowingOptions = false)
         {
-            //todo  add slot support.
-
+            var finalScore = 0;
             var score1 = CalculateGameScore(game);
             var p1 = game.Player1;
             if (action.Objects.Count == 1)
@@ -49,8 +50,9 @@ namespace Hearthrock.Server.Score
                         }
                         else
                         {
-                            var minionCard = Generic.DrawCard(p1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(p1, minionCard, null, action.Slot));
+                            var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                            var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                            game.Process(PlayCardTask.Any(p1, minion, null, action.Slot));
                         }
                     }
                 }
@@ -103,6 +105,7 @@ namespace Hearthrock.Server.Score
                             var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
                             var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
                             game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
+
                         }
                     }
                 }
@@ -111,37 +114,40 @@ namespace Hearthrock.Server.Score
             if (simulateFollowingOptions)
             {
                 var bestResult = FindBestFollowingResult(game);
-                var score2 = CalculateGameScore(bestResult);
                 game.Process(EndTurnTask.Any(game.Player1));
-                return score2 - score1;
+                var score2 = CalculateGameScore(bestResult);
+                finalScore = score2 - score1;
             }
             else
             {
                 game.Process(EndTurnTask.Any(game.Player1));
                 var score2 = CalculateGameScore(game);
-                return score2 - score1;
+                finalScore = score2 - score1;
             }
+
+            return finalScore;
         }
 
         private Game FindBestFollowingResult(Game g)
         {
-            var beginScore = CalculateGameScore(g);
-            var possiblities = new List<KeyValuePair<Game, int>>();
-            var options = g.Player1.Options();
-            if (options.Count == 0)
+            var gameCopy = g.Clone();
+            var p1Score=new PlayerScore();
+            p1Score.Controller = gameCopy.Player1;
+            
+            List<OptionNode> solutions = OptionNode.GetSolutions(gameCopy, gameCopy.Player1.Id, p1Score, maxSimulationDepth, 500);
+
+            var solution = new List<PlayerTask>();
+            solutions.OrderByDescending(p => p.Score).First().PlayerTasks(ref solution);
+
+            foreach (PlayerTask task in solution)
             {
-                return g;
-            }
-            foreach (var option in options)
-            {
-                var gameCopy = g.Clone();
-                gameCopy.Process(option);
-                var child = FindBestFollowingResult(gameCopy);
-                var childScore = CalculateGameScore(child);
-                possiblities.Add(new KeyValuePair<Game, int>(child, childScore - beginScore));
+                Console.WriteLine(task.FullPrint());
+                gameCopy.Process(task);
+                if (gameCopy.CurrentPlayer.Choice != null)
+                    break;
             }
 
-            return possiblities.OrderBy(k => k.Value).FirstOrDefault().Key;
+            return gameCopy;
         }
 
         private int CalculateGameScore(Game game)
