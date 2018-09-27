@@ -7,7 +7,7 @@ namespace Hearthrock.Server.Score
 {
     public class PlayerScore:SabberStoneCoreAi.Score.Score
     {
-        public const int HeroHpScore = 1000;
+        public const int HeroHpScore = 700;
         public const int MinionHpScore = 500;
         public const int TauntMinionHpAdditionalScore = 200;
         public const int MinionAttackScore = 500;
