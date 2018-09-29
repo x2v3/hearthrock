@@ -23,6 +23,8 @@ namespace Hearthrock.Server.Services
             "insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)";
         private const string InsertErrorSql=
             "insert into errorlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
+
+        private const string InsertPlayResultSql = "insert into playresult (player,session, win) values (@player,@session,@win);";
       
 
         public int AddPlayLog(RockScene scene, RockAction action)
@@ -40,9 +42,9 @@ namespace Hearthrock.Server.Services
             return cmd.ExecuteNonQuery();
         }
 
-        public Task<int> AddPlayLogAsync(RockScene scene, RockAction action)
+        public async Task<int> AddPlayLogAsync(RockScene scene, RockAction action)
         {
-            return Task.FromResult(AddPlayLog(scene, action));
+            return await Task.FromResult(AddPlayLog(scene, action));
         }
 
         public void AddPlayLogAsyncNoReturn(RockScene scene, RockAction action)
@@ -73,14 +75,39 @@ namespace Hearthrock.Server.Services
             return cmd.ExecuteNonQuery();
         }
 
-        public Task<int> AddErrorAsync(RockScene scene, Exception exception)
+        public async Task<int> AddErrorAsync(RockScene scene, Exception exception)
         {
-            return Task.FromResult(AddErrorLog(scene, exception));
+            return await Task.FromResult(AddErrorLog(scene, exception));
         }
 
         public void AddErrorLogAsnycNoResult(RockScene scene, Exception exception)
         {
             Task.Run(() => { AddErrorLog(scene, exception); });
+        }
+
+        public int AddPlayResult(PlayResult result)
+        {
+            
+            if (connection?.State != ConnectionState.Open)
+            {
+                connection=new MySqlConnection(connString);
+                connection.Open();
+            }
+            var cmd =new MySqlCommand(InsertPlayResultSql,connection);
+            cmd.Parameters.AddWithValue("@player", result.PlayerName);
+            cmd.Parameters.AddWithValue("@session", result.Session);
+            cmd.Parameters.AddWithValue("@win", result.Won);
+            return cmd.ExecuteNonQuery();
+        }
+
+        public async Task<int> AddPlayResultAsync(PlayResult result)
+        {
+            return await Task.FromResult(AddPlayResult(result));
+        }
+
+        public void AddPlayResultAsyncNoResult(PlayResult result)
+        {
+            Task.Run(() => { AddPlayResult(result); });
         }
     }
     
