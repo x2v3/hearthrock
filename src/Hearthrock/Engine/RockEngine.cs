@@ -117,6 +117,7 @@ namespace Hearthrock.Engine
             this.pegasus = RockPegasusFactory.CreatePegasus(this.tracer);
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
+            ResetGameStateMonitor();
             //logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
         }
 
@@ -280,6 +281,10 @@ namespace Hearthrock.Engine
 
             try
             {
+                if (this.gameStateMonitor != null)
+                {
+                    this.gameStateMonitor.RemoveGameOverListener();
+                }
                 this.gameStateMonitor = new RockGameStateMonitor();
                 gameStateMonitor.GameOver += ((s, e) =>
                 {
