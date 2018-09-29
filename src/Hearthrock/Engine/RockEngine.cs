@@ -61,6 +61,8 @@ namespace Hearthrock.Engine
         /// </summary>
         private RockGameStateMonitor gameStateMonitor;
 
+        private LocalLogFile logFile;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RockEngine" /> class.
         /// </summary>
@@ -115,6 +117,7 @@ namespace Hearthrock.Engine
             this.pegasus = RockPegasusFactory.CreatePegasus(this.tracer);
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
+            logFile=LocalLogFile.Create("D:\\temp\\"+sessionId+".txt");
         }
 
         /// <summary>
@@ -264,6 +267,18 @@ namespace Hearthrock.Engine
                 case RockPegasusGameState.WaitForPlay:
                     return this.OnRockAction();
                 case RockPegasusGameState.WaitForMulligan:
+                    
+                    try
+                    {
+
+                        this.gameStateMonitor = new RockGameStateMonitor();
+                        gameStateMonitor.AddGameOverListener();
+                        logFile.WriteLog("listener installed.");
+                    }
+                    catch (Exception e)
+                    {
+                        logFile.WriteLog(e);
+                    }
                     return this.OnRockMulligan();
                 case RockPegasusGameState.None:
                 default:

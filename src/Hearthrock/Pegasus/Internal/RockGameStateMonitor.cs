@@ -9,7 +9,13 @@ namespace Hearthrock.Pegasus.Internal
     {
         public bool AddGameOverListener()
         {
-            return GameState.Get().RegisterGameOverListener(GameOverCallback, null);
+            var gs = GameState.Get();
+            if (gs == null)
+            {
+                return false;
+            }
+            gs.UnregisterGameOverListener(GameOverCallback, null);
+            return gs.RegisterGameOverListener(GameOverCallback, null);
         }
 
         private void GameOverCallback(TAG_PLAYSTATE playstate, object userdata)
