@@ -24,7 +24,7 @@ namespace Hearthrock.Server.Controllers
         [HttpPost("playresult")]
         public ActionResult PlayResult([FromBody]PlayResult result)
         {
-            logger.LogWarning($"{result.PlayerName}.{result.Session} game over:won? {result.Won}");
+            logger.LogWarning($"GAME OVER {result.PlayerName}.{result.Session} {result.Won}");
             logDbService.AddPlayResultAsyncNoResult(result);
             return Ok();
         }
