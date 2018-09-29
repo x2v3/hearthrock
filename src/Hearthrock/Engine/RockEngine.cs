@@ -117,7 +117,7 @@ namespace Hearthrock.Engine
             this.pegasus = RockPegasusFactory.CreatePegasus(this.tracer);
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
-            logFile=LocalLogFile.Create("D:\\temp\\"+sessionId+".txt");
+            logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
         }
 
         /// <summary>
@@ -267,24 +267,41 @@ namespace Hearthrock.Engine
                 case RockPegasusGameState.WaitForPlay:
                     return this.OnRockAction();
                 case RockPegasusGameState.WaitForMulligan:
-                    
-                    try
-                    {
-
-                        this.gameStateMonitor = new RockGameStateMonitor();
-                        gameStateMonitor.AddGameOverListener();
-                        logFile.WriteLog("listener installed.");
-                    }
-                    catch (Exception e)
-                    {
-                        logFile.WriteLog(e);
-                    }
+                    ResetGameStateMonitor();
                     return this.OnRockMulligan();
                 case RockPegasusGameState.None:
                 default:
                     return 1;
             }
         }
+
+        private void ResetGameStateMonitor()
+        {
+
+            try
+            {
+                this.gameStateMonitor = new RockGameStateMonitor();
+                gameStateMonitor.GameOver += ((s, e) =>
+                {
+                    //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
+                    var result =new PlayResult()
+                    {
+                        PlayerName = BnetPresenceMgr.Get().GetMyPlayer().GetFullName(),
+                        Session = this.sessionId,
+                        Won = e.Won
+                    };
+                    tracer.UploadPlayResult(result);
+                    logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
+                });
+                gameStateMonitor.AddGameOverListener();
+                logFile.WriteLog("listener installed.");
+            }
+            catch (Exception e)
+            {
+                logFile.WriteLog(e);
+            }
+        }
+
 
         /// <summary>
         /// On WaitForAction state

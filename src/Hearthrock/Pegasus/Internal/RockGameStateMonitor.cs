@@ -7,6 +7,9 @@ namespace Hearthrock.Pegasus.Internal
 {
     public class RockGameStateMonitor
     {
+
+        public event EventHandler<GameOverEventArgs> GameOver; 
+
         public bool AddGameOverListener()
         {
             var gs = GameState.Get();
@@ -18,17 +21,24 @@ namespace Hearthrock.Pegasus.Internal
             return gs.RegisterGameOverListener(GameOverCallback, null);
         }
 
+
+
         private void GameOverCallback(TAG_PLAYSTATE playstate, object userdata)
         {
-            
-            UIStatus.Get().AddInfo("callback:"+playstate.ToString());
             if (playstate == TAG_PLAYSTATE.LOSING || playstate == TAG_PLAYSTATE.LOST)
             {
+                GameOver?.Invoke(this,new GameOverEventArgs(){Won = false});
             }
-            else
+            else if(playstate== TAG_PLAYSTATE.WINNING|| playstate==TAG_PLAYSTATE.WON)
             {
-                
+                GameOver?.Invoke(this,new GameOverEventArgs{Won = true});
             }
         }
+
+        public class GameOverEventArgs:EventArgs
+        {
+            public bool Won { get;set; }
+        }
     }
+
 }
