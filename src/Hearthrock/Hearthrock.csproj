@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Communication\RockApiClient.cs" />
     <Compile Include="Hooks\RockGameHooks.cs" />
+    <Compile Include="Pegasus\Internal\RockGameStateMonitor.cs" />
     <Compile Include="Pegasus\Internal\RockPegasusExtensions.cs" />
     <Compile Include="Pegasus\IRockPegasus.cs" />
     <Compile Include="Engine\RockEngineAction.cs" />

@@ -2,6 +2,8 @@
 //     Copyright (c) The Hearthrock Project. All rights reserved.
 // </copyright>
 
+using Hearthrock.Pegasus.Internal;
+
 namespace Hearthrock.Engine
 {
     using System;
@@ -53,6 +55,11 @@ namespace Hearthrock.Engine
         /// SessionId changes when start a new game or re-start the bot.
         /// </summary>
         private string sessionId;
+
+        /// <summary>
+        /// game event listeners.
+        /// </summary>
+        private RockGameStateMonitor gameStateMonitor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RockEngine" /> class.
