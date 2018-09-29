@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hearthrock.Contracts;
 using Hearthrock.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,11 +21,11 @@ namespace Hearthrock.Server.Controllers
         private ILogger logger;
         private ActionLogService logDbService;
 
-        [Route("playresult")]
-        public ActionResult PlayResult(string session, bool win)
+        [HttpPost("playresult")]
+        public ActionResult PlayResult(PlayResult result)
         {
-            logger.LogWarning($"{session} game over:won? {win}");
-            logDbService.AddPlayResultAsyncNoResult(session,win);
+            logger.LogWarning($"{result.PlayerName}.{result.Session} game over:won? {result.Won}");
+            logDbService.AddPlayResultAsyncNoResult(result);
             return Ok();
         }
     }

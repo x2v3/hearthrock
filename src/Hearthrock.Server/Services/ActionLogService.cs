@@ -24,7 +24,7 @@ namespace Hearthrock.Server.Services
         private const string InsertErrorSql=
             "insert into errorlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
 
-        private const string InsertPlayResultSql = "insert into playresult (session, win) values (@session,@win);";
+        private const string InsertPlayResultSql = "insert into playresult (player,session, win) values (@player,@session,@win);";
       
 
         public int AddPlayLog(RockScene scene, RockAction action)
@@ -85,7 +85,7 @@ namespace Hearthrock.Server.Services
             Task.Run(() => { AddErrorLog(scene, exception); });
         }
 
-        public int AddPlayResult(string session, bool win)
+        public int AddPlayResult(PlayResult result)
         {
             
             if (connection?.State != ConnectionState.Open)
@@ -94,19 +94,20 @@ namespace Hearthrock.Server.Services
                 connection.Open();
             }
             var cmd =new MySqlCommand(InsertPlayResultSql,connection);
-            cmd.Parameters.AddWithValue("@session", session);
-            cmd.Parameters.AddWithValue("@win", win);
+            cmd.Parameters.AddWithValue("@player", result.PlayerName);
+            cmd.Parameters.AddWithValue("@session", result.Session);
+            cmd.Parameters.AddWithValue("@win", result.Won);
             return cmd.ExecuteNonQuery();
         }
 
-        public async Task<int> AddPlayResultAsync(string session, bool win)
+        public async Task<int> AddPlayResultAsync(PlayResult result)
         {
-            return await Task.FromResult(AddPlayResult(session, win));
+            return await Task.FromResult(AddPlayResult(result));
         }
 
-        public void AddPlayResultAsyncNoResult(string session, bool win)
+        public void AddPlayResultAsyncNoResult(PlayResult result)
         {
-            Task.Run(() => { AddPlayResult(session, win); });
+            Task.Run(() => { AddPlayResult(result); });
         }
     }
     
