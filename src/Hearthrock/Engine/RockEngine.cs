@@ -288,7 +288,7 @@ namespace Hearthrock.Engine
                     var tag = player.GetBattleTag();
                     var result =new PlayResult()
                     {
-                        PlayerName = $"{player.GetFullName()}#{tag.GetString()}#{tag.GetNumber()}",
+                        PlayerName = $"{player.GetFullName()}#{tag.GetString()}",
                         Session = this.sessionId,
                         Won = e.Won
                     };
