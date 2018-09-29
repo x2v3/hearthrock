@@ -2,6 +2,8 @@
 //     Copyright (c) The Hearthrock Project. All rights reserved.
 // </copyright>
 
+using System.Threading;
+
 namespace Hearthrock.Diagnostics
 {
     using System;
@@ -94,6 +96,16 @@ namespace Hearthrock.Diagnostics
             {
                 this.webApiClient.PostAsync(this.configuration.TraceEndpoint, traceMessage);
             }
+        }
+
+        public void UploadPlayResult(PlayResult data)
+        {
+            
+            if (!string.IsNullOrEmpty(this.configuration.TraceEndpoint))
+            {
+                this.webApiClient.PostAsync(this.configuration.BotEndpoint+"datareport/playresult", data);
+            }
+            
         }
     }
 }
