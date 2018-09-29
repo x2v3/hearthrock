@@ -22,7 +22,7 @@ namespace Hearthrock.Server.Controllers
         private ActionLogService logDbService;
 
         [HttpPost("playresult")]
-        public ActionResult PlayResult(PlayResult result)
+        public ActionResult PlayResult([FromBody]PlayResult result)
         {
             logger.LogWarning($"{result.PlayerName}.{result.Session} game over:won? {result.Won}");
             logDbService.AddPlayResultAsyncNoResult(result);
