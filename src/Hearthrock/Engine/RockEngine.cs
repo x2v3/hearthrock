@@ -61,7 +61,7 @@ namespace Hearthrock.Engine
         /// </summary>
         private RockGameStateMonitor gameStateMonitor;
 
-        private LocalLogFile logFile;
+        //private LocalLogFile logFile;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RockEngine" /> class.
@@ -117,7 +117,7 @@ namespace Hearthrock.Engine
             this.pegasus = RockPegasusFactory.CreatePegasus(this.tracer);
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
-            logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
+            //logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
         }
 
         /// <summary>
@@ -284,21 +284,23 @@ namespace Hearthrock.Engine
                 gameStateMonitor.GameOver += ((s, e) =>
                 {
                     //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
+                    var player = BnetPresenceMgr.Get().GetMyPlayer();
+                    var tag = player.GetBattleTag();
                     var result =new PlayResult()
                     {
-                        PlayerName = BnetPresenceMgr.Get().GetMyPlayer().GetFullName(),
+                        PlayerName = $"{player.GetFullName()}#{tag.GetString()}#{tag.GetNumber()}",
                         Session = this.sessionId,
                         Won = e.Won
                     };
                     tracer.UploadPlayResult(result);
-                    logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
+                    //logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
                 });
                 gameStateMonitor.AddGameOverListener();
-                logFile.WriteLog("listener installed.");
+                //logFile.WriteLog("listener installed.");
             }
             catch (Exception e)
             {
-                logFile.WriteLog(e);
+                //logFile.WriteLog(e);
             }
         }
 
