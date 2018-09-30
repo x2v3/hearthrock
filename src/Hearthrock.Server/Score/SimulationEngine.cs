@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hearthrock.Contracts;
+using Hearthrock.Server.Services;
 using SabberStoneCore.Actions;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -20,131 +21,150 @@ namespace Hearthrock.Server.Score
 {
     public class SimulationEngine
     {
-        public SimulationEngine(RockScene scene)
+        public SimulationEngine(RockScene scene, ActionLogService dbLogService = null)
         {
             currentScene = scene;
             game = BuildGameFromScene(currentScene);
+            this.dbLogService = dbLogService;
         }
+
 
         private RockScene currentScene;
         private Dictionary<int, IEntity> idMap = new Dictionary<int, IEntity>();
         private Game game;
         private int maxSimulationDepth = 10;
+        private ActionLogService dbLogService;
 
         public int SimulateAction(RockAction action, bool simulateFollowingOptions = false)
         {
             var finalScore = 0;
-            var score1 = CalculateGameScore(game);
-            var p1 = game.Player1;
-            if (action.Objects.Count == 1)
+            try
             {
-                // play out a card.
-                var obj = currentScene.Self.GetObjectById(action.Objects[0]);
-                if (obj != null)
+
+                var score1 = CalculateGameScore(game);
+                var p1 = game.Player1;
+                if (action.Objects.Count == 1)
                 {
-                    if (obj is RockCard card)
+                    // play out a card.
+                    var obj = currentScene.Self.GetObjectById(action.Objects[0]);
+                    if (obj != null)
                     {
-                        if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                        if (obj is RockCard card)
                         {
-                            game.Process(HeroPowerTask.Any(p1));
-                        }
-                        else
-                        {
-                            var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
-                            var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(p1, minion, null, action.Slot));
+                            if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                            {
+                                game.Process(HeroPowerTask.Any(p1));
+                            }
+                            else
+                            {
+                                var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                                var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                                game.Process(PlayCardTask.Any(p1, minion, null, action.Slot));
+                            }
                         }
                     }
                 }
-            }
-            else if (action.Objects.Count == 2)
-            {
-                var src = currentScene.Self.GetObjectById(action.Objects[0]);
-                var targetRockId = action.Objects[1];
-                var target = idMap[targetRockId];
-                // if src is hero/minion ,do attack
-                if (idMap.Keys.Contains(action.Objects[0]))
+                else if (action.Objects.Count == 2)
                 {
-                    if (src is RockCard card)
+                    var src = currentScene.Self.GetObjectById(action.Objects[0]);
+                    var targetRockId = action.Objects[1];
+                    var target = idMap[targetRockId];
+                    // if src is hero/minion ,do attack
+                    if (idMap.Keys.Contains(action.Objects[0]))
                     {
-                        if (card.CardType == RockCardType.Minion)
+                        if (src is RockCard card)
                         {
-                            var gamesrc = idMap[card.RockId];
+                            if (card.CardType == RockCardType.Minion)
+                            {
+                                var gamesrc = idMap[card.RockId];
+                                game.Process(MinionAttackTask.Any(game.Player1, gamesrc, target));
+                            }
+                            else
+                            {
+                                var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                                var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                                game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
+                            }
+                        }
+                        else if (src is RockMinion minion)
+                        {
+                            var gamesrc = idMap[minion.RockId];
                             game.Process(MinionAttackTask.Any(game.Player1, gamesrc, target));
-                        }
-                        else
-                        {
-                            var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
-                            var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
-                        }
-                    }
-                    else if (src is RockMinion minion)
-                    {
-                        var gamesrc = idMap[minion.RockId];
-                        game.Process(MinionAttackTask.Any(game.Player1, gamesrc, target));
 
+                        }
                     }
+                    else
+                    {
+                        if (src is RockCard card)
+                        {
+                            if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
+                            {
+                                game.Process(HeroPowerTask.Any(p1, idMap[targetRockId]));
+                            }
+                            else if (card.CardType == RockCardType.Minion)
+                            {
+                                var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                                var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                                game.Process(PlayCardTask.Any(game.Player1, minion, target, action.Slot));
+                            }
+                            else
+                            {
+                                var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
+                                var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
+                                game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
+
+                            }
+                        }
+                    }
+                }
+
+                if (simulateFollowingOptions)
+                {
+                    var bestResult = FindBestFollowingResult(game);
+                    game.Process(EndTurnTask.Any(game.Player1));
+                    var score2 = CalculateGameScore(bestResult);
+                    finalScore = score2 - score1;
                 }
                 else
                 {
-                    if (src is RockCard card)
-                    {
-                        if (card.CardId == game.Player1.Hero.HeroPower.Card.Id)
-                        {
-                            game.Process(HeroPowerTask.Any(p1, idMap[targetRockId]));
-                        }
-                        else if (card.CardType == RockCardType.Minion)
-                        {
-                            var handMinion = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
-                            var minion = handMinion ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.Any(game.Player1, minion, target, action.Slot));
-                        }
-                        else
-                        {
-                            var handSpell = p1.HandZone.FirstOrDefault(c => c.Card.Id == card.CardId);
-                            var spell = handSpell ?? Generic.DrawCard(game.Player1, Cards.FromId(card.CardId));
-                            game.Process(PlayCardTask.SpellTarget(game.Player1, spell, target));
-
-                        }
-                    }
+                    game.Process(EndTurnTask.Any(game.Player1));
+                    var score2 = CalculateGameScore(game);
+                    finalScore = score2 - score1;
                 }
-            }
 
-            if (simulateFollowingOptions)
-            {
-                var bestResult = FindBestFollowingResult(game);
-                game.Process(EndTurnTask.Any(game.Player1));
-                var score2 = CalculateGameScore(bestResult);
-                finalScore = score2 - score1;
             }
-            else
+            catch (Exception e)
             {
-                game.Process(EndTurnTask.Any(game.Player1));
-                var score2 = CalculateGameScore(game);
-                finalScore = score2 - score1;
+                dbLogService?.AddErrorLogAsnycNoResult(currentScene, e);
             }
-
             return finalScore;
         }
 
         private Game FindBestFollowingResult(Game g)
         {
             var gameCopy = g.Clone();
-            var p1Score=new PlayerScore();
-            p1Score.Controller = gameCopy.Player1;
-            
-            List<OptionNode> solutions = OptionNode.GetSolutions(gameCopy, gameCopy.Player1.Id, p1Score, maxSimulationDepth, 500);
-
-            var solution = new List<PlayerTask>();
-            solutions.OrderByDescending(p => p.Score).First().PlayerTasks(ref solution);
-
-            foreach (PlayerTask task in solution)
+            try
             {
-                Console.WriteLine(task.FullPrint());
-                gameCopy.Process(task);
-                if (gameCopy.CurrentPlayer.Choice != null)
-                    break;
+
+                var p1Score = new PlayerScore();
+                p1Score.Controller = gameCopy.Player1;
+
+                List<OptionNode> solutions = OptionNode.GetSolutions(gameCopy, gameCopy.Player1.Id, p1Score, maxSimulationDepth, 500);
+
+                var solution = new List<PlayerTask>();
+                solutions.OrderByDescending(p => p.Score).First().PlayerTasks(ref solution);
+
+                foreach (PlayerTask task in solution)
+                {
+                    Console.WriteLine(task.FullPrint());
+                    gameCopy.Process(task);
+                    if (gameCopy.CurrentPlayer.Choice != null)
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                dbLogService?.AddErrorLogAsnycNoResult(currentScene, e);
             }
 
             return gameCopy;
