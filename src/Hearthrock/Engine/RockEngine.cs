@@ -61,7 +61,7 @@ namespace Hearthrock.Engine
         /// </summary>
         private RockGameStateMonitor gameStateMonitor;
 
-        //private LocalLogFile logFile;
+        private LocalLogFile logFile; // = LocalLogFile.Create("D:\\temp\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RockEngine" /> class.
@@ -118,7 +118,6 @@ namespace Hearthrock.Engine
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
             ResetGameStateMonitor();
-            //logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
         }
 
         /// <summary>
@@ -286,7 +285,6 @@ namespace Hearthrock.Engine
                     return 5;
 
                 case RockPegasusGameState.WaitForPlay:
-                    ResetGameStateMonitor();
                     return this.OnRockAction();
 
                 case RockPegasusGameState.WaitForMulligan:
@@ -317,16 +315,24 @@ namespace Hearthrock.Engine
                             Won = e.Won
                         };
                         tracer.UploadPlayResult(result);
-                        //logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
+                        logFile?.WriteLog("GameOver " + result.PlayerName + "  " + result.Session + "  " + result.Won);
                     });
+                    gameStateMonitor.GameStart += GameStateMonitor_GameStart;
                 }
                 gameStateMonitor.AddGameOverListener();
-                //logFile.WriteLog("listener installed.");
+                gameStateMonitor.AddCreateGameListener();
+                logFile?.WriteLog("listener installed.");
             }
             catch (Exception e)
             {
-                //logFile.WriteLog(e);
+                logFile?.WriteLog(e);
             }
+        }
+
+        private void GameStateMonitor_GameStart(object sender, EventArgs e)
+        {
+            this.sessionId = Guid.NewGuid().ToString();
+            logFile?.WriteLog($"GameStart {sessionId}");
         }
 
         /// <summary>
@@ -389,15 +395,16 @@ namespace Hearthrock.Engine
         /// <returns>Seconds to be delayed before next call.</returns>
         private double OnRockMulligan()
         {
+            // Force update sessionId when starting a new game.
+            this.sessionId = Guid.NewGuid().ToString();
+            logFile?.WriteLog($"mulligan reset sessionid {sessionId}");
             if (this.currentAction == null)
             {
                 this.ShowRockInfo("Mulligan");
                 this.actionId += 1;
-                // Force update sessionId when starting a new game.
-                this.sessionId = Guid.NewGuid().ToString();
                 var scene = this.pegasus.SnapshotScene(this.sessionId, this.actionId);
                 var mulliganedAction = this.bot.GetMulliganAction(scene);
-
+                ResetGameStateMonitor();
                 this.currentAction = new RockEngineAction(this.pegasus, mulliganedAction.Objects, mulliganedAction.Slot);
             }
 

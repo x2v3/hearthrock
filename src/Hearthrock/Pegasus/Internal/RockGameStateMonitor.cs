@@ -9,6 +9,8 @@ namespace Hearthrock.Pegasus.Internal
     {
         public event EventHandler<GameOverEventArgs> GameOver;
 
+        public event EventHandler<EventArgs> GameStart;
+
         private GameState currentGameState;
 
         public bool AddGameOverListener()
@@ -17,11 +19,13 @@ namespace Hearthrock.Pegasus.Internal
             if (gs == null)
             {
                 currentGameState?.UnregisterGameOverListener(GameOverCallback);
+                //currentGameState?.UnregisterCreateGameListener(CreateGameCallback);
                 return false;
             }
             if (currentGameState != gs)
             {
                 currentGameState?.UnregisterGameOverListener(GameOverCallback);
+                //currentGameState?.UnregisterCreateGameListener(CreateGameCallback);
                 currentGameState = gs;
                 return gs.RegisterGameOverListener(GameOverCallback);
             }
@@ -31,9 +35,40 @@ namespace Hearthrock.Pegasus.Internal
             }
         }
 
+        public bool AddCreateGameListener()
+        {
+            var gs = GameState.Get();
+            if (gs == null)
+            {
+                currentGameState?.UnregisterCreateGameListener(CreateGameCallback);
+                return false;
+            }
+            if (currentGameState != gs)
+            {
+                currentGameState?.UnregisterCreateGameListener(CreateGameCallback);
+                currentGameState = gs;
+                return gs.RegisterCreateGameListener(CreateGameCallback);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private void CreateGameCallback(GameState.CreateGamePhase phase, object userdata)
+        {
+            if (phase == GameState.CreateGamePhase.CREATED)
+                GameStart?.Invoke(this, EventArgs.Empty);
+        }
+
         public void RemoveGameOverListener()
         {
             currentGameState?.UnregisterGameOverListener(GameOverCallback);
+        }
+
+        public void RemoveCreateGameListener()
+        {
+            currentGameState?.UnregisterCreateGameListener(CreateGameCallback);
         }
 
         private void GameOverCallback(TAG_PLAYSTATE playstate, object userdata)
