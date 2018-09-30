@@ -164,15 +164,19 @@ namespace Hearthrock.Engine
                 {
                     case RockPegasusSceneState.BlockingScene:
                         return 1;
+
                     case RockPegasusSceneState.QuestsDialog:
                         this.pegasus.DoCloseQuestsDialog();
                         return 2;
+
                     case RockPegasusSceneState.GeneralDialog:
                         this.pegasus.DoCloseGeneralDialog();
                         return 2;
+
                     case RockPegasusSceneState.CancelableScene:
                         this.pegasus.NavigateToHubScene();
                         break;
+
                     case RockPegasusSceneState.HubScene:
                         switch (this.GameMode)
                         {
@@ -180,6 +184,7 @@ namespace Hearthrock.Engine
                             case RockGameMode.ExpertPractice:
                                 this.pegasus.NavigateToAdventureScene();
                                 break;
+
                             case RockGameMode.Casual:
                             case RockGameMode.Ranked:
                             case RockGameMode.WildCasual:
@@ -187,30 +192,36 @@ namespace Hearthrock.Engine
                                 this.pegasus.NavigateToTournamentScene();
                                 //// Tournament.Get().NotifyOfBoxTransitionStart();
                                 break;
+
                             default:
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.AdventureScene:
                         switch (this.GameMode)
                         {
                             case RockGameMode.NormalPractice:
                                 return this.OnRockPracticeMode(false);
+
                             case RockGameMode.ExpertPractice:
                                 return this.OnRockPracticeMode(true);
+
                             case RockGameMode.Casual:
                             case RockGameMode.Ranked:
                             case RockGameMode.WildCasual:
                             case RockGameMode.WildRanked:
                                 this.pegasus.NavigateToHubScene();
                                 break;
+
                             default:
                                 this.pegasus.NavigateToHubScene();
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.TournamentScene:
                         switch (this.GameMode)
                         {
@@ -218,22 +229,29 @@ namespace Hearthrock.Engine
                             case RockGameMode.ExpertPractice:
                                 this.pegasus.NavigateToHubScene();
                                 break;
+
                             case RockGameMode.Casual:
                                 return this.OnRockTournamentMode(false, false);
+
                             case RockGameMode.WildCasual:
                                 return this.OnRockTournamentMode(false, true);
+
                             case RockGameMode.Ranked:
                                 return this.OnRockTournamentMode(true, false);
+
                             case RockGameMode.WildRanked:
                                 return this.OnRockTournamentMode(true, true);
+
                             default:
                                 this.pegasus.NavigateToHubScene();
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.GamePlay:
                         return this.OnRockGamePlay();
+
                     case RockPegasusSceneState.InvalidScene:
                     case RockPegasusSceneState.None:
                     default:
@@ -261,15 +279,19 @@ namespace Hearthrock.Engine
             {
                 case RockPegasusGameState.Blocking:
                     return 1;
+
                 case RockPegasusGameState.GameOver:
                     this.ShowRockInfo("Game Over");
                     this.pegasus.DoEndFinishedGame();
                     return 5;
+
                 case RockPegasusGameState.WaitForPlay:
-                    return this.OnRockAction();
-                case RockPegasusGameState.WaitForMulligan:
                     ResetGameStateMonitor();
+                    return this.OnRockAction();
+
+                case RockPegasusGameState.WaitForMulligan:
                     return this.OnRockMulligan();
+
                 case RockPegasusGameState.None:
                 default:
                     return 1;
@@ -278,28 +300,26 @@ namespace Hearthrock.Engine
 
         private void ResetGameStateMonitor()
         {
-
             try
             {
-                if (this.gameStateMonitor != null)
+                if (this.gameStateMonitor == null)
                 {
-                    this.gameStateMonitor.RemoveGameOverListener();
-                }
-                this.gameStateMonitor = new RockGameStateMonitor();
-                gameStateMonitor.GameOver += ((s, e) =>
-                {
-                    //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
-                    var player = BnetPresenceMgr.Get().GetMyPlayer();
-                    var tag = player.GetBattleTag();
-                    var result =new PlayResult()
+                    this.gameStateMonitor = new RockGameStateMonitor();
+                    gameStateMonitor.GameOver += ((s, e) =>
                     {
-                        PlayerName = $"{player.GetFullName()}#{tag.GetString()}",
-                        Session = this.sessionId,
-                        Won = e.Won
-                    };
-                    tracer.UploadPlayResult(result);
-                    //logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
-                });
+                        //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
+                        var player = BnetPresenceMgr.Get().GetMyPlayer();
+                        var tag = player.GetBattleTag();
+                        var result = new PlayResult()
+                        {
+                            PlayerName = $"{player.GetFullName()}#{tag.GetString()}",
+                            Session = this.sessionId,
+                            Won = e.Won
+                        };
+                        tracer.UploadPlayResult(result);
+                        //logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
+                    });
+                }
                 gameStateMonitor.AddGameOverListener();
                 //logFile.WriteLog("listener installed.");
             }
@@ -308,7 +328,6 @@ namespace Hearthrock.Engine
                 //logFile.WriteLog(e);
             }
         }
-
 
         /// <summary>
         /// On WaitForAction state
@@ -410,6 +429,7 @@ namespace Hearthrock.Engine
                     this.pegasus.ConfigTournamentMode(ranked, wild);
                     this.pegasus.PlayTournamentGame();
                     return 1;
+
                 default:
                 case RockPegasusSubsceneState.WaitForChooseMode:
                 case RockPegasusSubsceneState.WaitForChooseDeck:
@@ -433,15 +453,19 @@ namespace Hearthrock.Engine
                 case RockPegasusSubsceneState.WaitForChooseMode:
                     this.pegasus.ConfigPracticeMode(expert);
                     return 1;
+
                 case RockPegasusSubsceneState.WaitForChooseDeck:
                     this.pegasus.ConfigDeck(this.configuration.DeckIndex);
                     return 1;
+
                 case RockPegasusSubsceneState.WaitForChooseOpponent:
                     this.pegasus.ConfigPracticeOpponent(this.configuration.OpponentIndex);
                     return 1;
+
                 case RockPegasusSubsceneState.Ready:
                     this.pegasus.PlayPracticeGame();
                     return 1;
+
                 default:
                 case RockPegasusSubsceneState.None:
                     return 0.5;

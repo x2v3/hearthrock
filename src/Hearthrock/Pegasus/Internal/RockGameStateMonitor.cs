@@ -7,28 +7,33 @@ namespace Hearthrock.Pegasus.Internal
 {
     public class RockGameStateMonitor
     {
-
         public event EventHandler<GameOverEventArgs> GameOver;
+
+        private GameState currentGameState;
 
         public bool AddGameOverListener()
         {
             var gs = GameState.Get();
             if (gs == null)
             {
+                currentGameState?.UnregisterGameOverListener(GameOverCallback);
                 return false;
             }
-            gs.UnregisterGameOverListener(GameOverCallback, null);
-            return gs.RegisterGameOverListener(GameOverCallback, null);
+            if (currentGameState != gs)
+            {
+                currentGameState?.UnregisterGameOverListener(GameOverCallback);
+                currentGameState = gs;
+                return gs.RegisterGameOverListener(GameOverCallback);
+            }
+            else
+            {
+                return true;
+            }
         }
 
         public void RemoveGameOverListener()
         {
-            var gs = GameState.Get();
-            if (gs != null)
-            {
-
-                gs.UnregisterGameOverListener(GameOverCallback, null);
-            }
+            currentGameState?.UnregisterGameOverListener(GameOverCallback);
         }
 
         private void GameOverCallback(TAG_PLAYSTATE playstate, object userdata)
@@ -48,5 +53,4 @@ namespace Hearthrock.Pegasus.Internal
             public bool Won { get; set; }
         }
     }
-
 }
