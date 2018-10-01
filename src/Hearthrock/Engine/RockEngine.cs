@@ -316,6 +316,7 @@ namespace Hearthrock.Engine
                         };
                         tracer.UploadPlayResult(result);
                         logFile?.WriteLog("GameOver " + result.PlayerName + "  " + result.Session + "  " + result.Won);
+                        this.sessionId = Guid.NewGuid().ToString();
                     });
                     gameStateMonitor.GameStart += GameStateMonitor_GameStart;
                 }
