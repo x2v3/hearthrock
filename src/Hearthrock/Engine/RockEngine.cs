@@ -61,7 +61,7 @@ namespace Hearthrock.Engine
         /// </summary>
         private RockGameStateMonitor gameStateMonitor;
 
-        //private LocalLogFile logFile;
+        private LocalLogFile logFile; // = LocalLogFile.Create("D:\\temp\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".txt");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RockEngine" /> class.
@@ -118,7 +118,6 @@ namespace Hearthrock.Engine
             this.actionId = 0;
             this.sessionId = Guid.NewGuid().ToString();
             ResetGameStateMonitor();
-            //logFile = LocalLogFile.Create("D:\\temp\\" + sessionId + ".txt");
         }
 
         /// <summary>
@@ -164,15 +163,19 @@ namespace Hearthrock.Engine
                 {
                     case RockPegasusSceneState.BlockingScene:
                         return 1;
+
                     case RockPegasusSceneState.QuestsDialog:
                         this.pegasus.DoCloseQuestsDialog();
                         return 2;
+
                     case RockPegasusSceneState.GeneralDialog:
                         this.pegasus.DoCloseGeneralDialog();
                         return 2;
+
                     case RockPegasusSceneState.CancelableScene:
                         this.pegasus.NavigateToHubScene();
                         break;
+
                     case RockPegasusSceneState.HubScene:
                         switch (this.GameMode)
                         {
@@ -180,6 +183,7 @@ namespace Hearthrock.Engine
                             case RockGameMode.ExpertPractice:
                                 this.pegasus.NavigateToAdventureScene();
                                 break;
+
                             case RockGameMode.Casual:
                             case RockGameMode.Ranked:
                             case RockGameMode.WildCasual:
@@ -187,30 +191,36 @@ namespace Hearthrock.Engine
                                 this.pegasus.NavigateToTournamentScene();
                                 //// Tournament.Get().NotifyOfBoxTransitionStart();
                                 break;
+
                             default:
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.AdventureScene:
                         switch (this.GameMode)
                         {
                             case RockGameMode.NormalPractice:
                                 return this.OnRockPracticeMode(false);
+
                             case RockGameMode.ExpertPractice:
                                 return this.OnRockPracticeMode(true);
+
                             case RockGameMode.Casual:
                             case RockGameMode.Ranked:
                             case RockGameMode.WildCasual:
                             case RockGameMode.WildRanked:
                                 this.pegasus.NavigateToHubScene();
                                 break;
+
                             default:
                                 this.pegasus.NavigateToHubScene();
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.TournamentScene:
                         switch (this.GameMode)
                         {
@@ -218,22 +228,29 @@ namespace Hearthrock.Engine
                             case RockGameMode.ExpertPractice:
                                 this.pegasus.NavigateToHubScene();
                                 break;
+
                             case RockGameMode.Casual:
                                 return this.OnRockTournamentMode(false, false);
+
                             case RockGameMode.WildCasual:
                                 return this.OnRockTournamentMode(false, true);
+
                             case RockGameMode.Ranked:
                                 return this.OnRockTournamentMode(true, false);
+
                             case RockGameMode.WildRanked:
                                 return this.OnRockTournamentMode(true, true);
+
                             default:
                                 this.pegasus.NavigateToHubScene();
                                 break;
                         }
 
                         break;
+
                     case RockPegasusSceneState.GamePlay:
                         return this.OnRockGamePlay();
+
                     case RockPegasusSceneState.InvalidScene:
                     case RockPegasusSceneState.None:
                     default:
@@ -261,15 +278,18 @@ namespace Hearthrock.Engine
             {
                 case RockPegasusGameState.Blocking:
                     return 1;
+
                 case RockPegasusGameState.GameOver:
                     this.ShowRockInfo("Game Over");
                     this.pegasus.DoEndFinishedGame();
                     return 5;
+
                 case RockPegasusGameState.WaitForPlay:
                     return this.OnRockAction();
+
                 case RockPegasusGameState.WaitForMulligan:
-                    ResetGameStateMonitor();
                     return this.OnRockMulligan();
+
                 case RockPegasusGameState.None:
                 default:
                     return 1;
@@ -278,37 +298,43 @@ namespace Hearthrock.Engine
 
         private void ResetGameStateMonitor()
         {
-
             try
             {
-                if (this.gameStateMonitor != null)
+                if (this.gameStateMonitor == null)
                 {
-                    this.gameStateMonitor.RemoveGameOverListener();
-                }
-                this.gameStateMonitor = new RockGameStateMonitor();
-                gameStateMonitor.GameOver += ((s, e) =>
-                {
-                    //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
-                    var player = BnetPresenceMgr.Get().GetMyPlayer();
-                    var tag = player.GetBattleTag();
-                    var result =new PlayResult()
+                    this.gameStateMonitor = new RockGameStateMonitor();
+                    gameStateMonitor.GameOver += ((s, e) =>
                     {
-                        PlayerName = $"{player.GetFullName()}#{tag.GetString()}",
-                        Session = this.sessionId,
-                        Won = e.Won
-                    };
-                    tracer.UploadPlayResult(result);
-                    //logFile.WriteLog(result.PlayerName+"  "+ result.Session+"  "+result.Won);
-                });
+                        //var jsonStr = "{\"session\":\"" + this.sessionId + "\",\"win\":" + (e.Won ? "true" : "false") + "}";
+                        var player = BnetPresenceMgr.Get().GetMyPlayer();
+                        var tag = player.GetBattleTag();
+                        var result = new PlayResult()
+                        {
+                            PlayerName = $"{player.GetFullName()}#{tag.GetString()}",
+                            Session = this.sessionId,
+                            Won = e.Won
+                        };
+                        tracer.UploadPlayResult(result);
+                        logFile?.WriteLog("GameOver " + result.PlayerName + "  " + result.Session + "  " + result.Won);
+                        this.sessionId = Guid.NewGuid().ToString();
+                    });
+                    gameStateMonitor.GameStart += GameStateMonitor_GameStart;
+                }
                 gameStateMonitor.AddGameOverListener();
-                //logFile.WriteLog("listener installed.");
+                gameStateMonitor.AddCreateGameListener();
+                logFile?.WriteLog("listener installed.");
             }
             catch (Exception e)
             {
-                //logFile.WriteLog(e);
+                logFile?.WriteLog(e);
             }
         }
 
+        private void GameStateMonitor_GameStart(object sender, EventArgs e)
+        {
+            this.sessionId = Guid.NewGuid().ToString();
+            logFile?.WriteLog($"GameStart {sessionId}");
+        }
 
         /// <summary>
         /// On WaitForAction state
@@ -370,15 +396,16 @@ namespace Hearthrock.Engine
         /// <returns>Seconds to be delayed before next call.</returns>
         private double OnRockMulligan()
         {
+            // Force update sessionId when starting a new game.
+            this.sessionId = Guid.NewGuid().ToString();
+            logFile?.WriteLog($"mulligan reset sessionid {sessionId}");
             if (this.currentAction == null)
             {
                 this.ShowRockInfo("Mulligan");
                 this.actionId += 1;
-                // Force update sessionId when starting a new game.
-                this.sessionId = Guid.NewGuid().ToString();
                 var scene = this.pegasus.SnapshotScene(this.sessionId, this.actionId);
                 var mulliganedAction = this.bot.GetMulliganAction(scene);
-
+                ResetGameStateMonitor();
                 this.currentAction = new RockEngineAction(this.pegasus, mulliganedAction.Objects, mulliganedAction.Slot);
             }
 
@@ -410,6 +437,7 @@ namespace Hearthrock.Engine
                     this.pegasus.ConfigTournamentMode(ranked, wild);
                     this.pegasus.PlayTournamentGame();
                     return 1;
+
                 default:
                 case RockPegasusSubsceneState.WaitForChooseMode:
                 case RockPegasusSubsceneState.WaitForChooseDeck:
@@ -433,15 +461,19 @@ namespace Hearthrock.Engine
                 case RockPegasusSubsceneState.WaitForChooseMode:
                     this.pegasus.ConfigPracticeMode(expert);
                     return 1;
+
                 case RockPegasusSubsceneState.WaitForChooseDeck:
                     this.pegasus.ConfigDeck(this.configuration.DeckIndex);
                     return 1;
+
                 case RockPegasusSubsceneState.WaitForChooseOpponent:
                     this.pegasus.ConfigPracticeOpponent(this.configuration.OpponentIndex);
                     return 1;
+
                 case RockPegasusSubsceneState.Ready:
                     this.pegasus.PlayPracticeGame();
                     return 1;
+
                 default:
                 case RockPegasusSubsceneState.None:
                     return 0.5;

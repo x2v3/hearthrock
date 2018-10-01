@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Hearthrock.Diagnostics
 {
-    class LocalLogFile
+    internal class LocalLogFile
     {
         public LocalLogFile(string filename)
         {
@@ -31,15 +31,33 @@ namespace Hearthrock.Diagnostics
 
         public void WriteLog(string content)
         {
-            var fs = File.CreateText(filename);
-            fs.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss").PadLeft(30,'*').PadRight(60,'*'));
-            fs.WriteLine(content);
-            fs.WriteLine("".PadRight(50,'#'));
-            fs.Close();
-            fs.Dispose();
+            try
+            {
+                if (!File.Exists(filename))
+                {
+                    var f = File.Create(filename);
+                    f.Close();
+                    f.Dispose();
+                }
+                //var s = File.Open(filename, FileMode.Append, FileAccess.ReadWrite, FileShare.Read);
+                //var fs = new StreamWriter(s);
+                //fs.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss").PadLeft(30, '*').PadRight(60, '*'));
+                //fs.WriteLine(content);
+                //fs.WriteLine("".PadRight(50, '#'));
+                //fs.Close();
+                //fs.Dispose();
+                var sb = new StringBuilder();
+                sb.AppendLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss").PadLeft(30, '*').PadRight(60, '*'));
+                sb.AppendLine(content);
+                sb.AppendLine("".PadRight(50, '#'));
+                File.AppendAllText(filename, sb.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
-        
         public void WriteLog(Exception ex)
         {
             var content = ex.ToString();
