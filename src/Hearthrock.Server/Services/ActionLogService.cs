@@ -21,24 +21,24 @@ namespace Hearthrock.Server.Services
 
         private const string InsertPlaySql =
             "insert into playlog (`session`,`turn`,`jsondata`,`action`) values(@session,@turn,@jsondata,@action)";
-        private const string InsertErrorSql=
+
+        private const string InsertErrorSql =
             "insert into errorlog (`session`,`turn`,`jsondata`,`exception`) values(@session,@turn,@jsondata,@exception)";
 
         private const string InsertPlayResultSql = "replace into playresult (player,session, win) values (@player,@session,@win);";
-      
 
         public int AddPlayLog(RockScene scene, RockAction action)
         {
             if (connection?.State != ConnectionState.Open)
             {
-                connection=new MySqlConnection(connString);
+                connection = new MySqlConnection(connString);
                 connection.Open();
             }
-            var cmd =new MySqlCommand(InsertPlaySql,connection);
+            var cmd = new MySqlCommand(InsertPlaySql, connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
             cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
-            cmd.Parameters.AddWithValue("@action",JsonConvert.SerializeObject(action));
+            cmd.Parameters.AddWithValue("@action", JsonConvert.SerializeObject(action));
             return cmd.ExecuteNonQuery();
         }
 
@@ -56,20 +56,20 @@ namespace Hearthrock.Server.Services
         {
             if (connection?.State != ConnectionState.Open)
             {
-                connection=new MySqlConnection(connString);
+                connection = new MySqlConnection(connString);
                 connection.Open();
             }
-            var cmd =new MySqlCommand(InsertErrorSql,connection);
+            var cmd = new MySqlCommand(InsertErrorSql, connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
             cmd.Parameters.AddWithValue("@jsondata", JsonConvert.SerializeObject(scene));
             try
             {
-                cmd.Parameters.AddWithValue("@exception",JsonConvert.SerializeObject(exception));
+                cmd.Parameters.AddWithValue("@exception", JsonConvert.SerializeObject(exception));
             }
             catch (Exception e)
             {
-                cmd.Parameters.AddWithValue("@exception",DBNull.Value);
+                cmd.Parameters.AddWithValue("@exception", DBNull.Value);
                 Console.WriteLine($"Write error log to db error:{e.Message}");
             }
             return cmd.ExecuteNonQuery();
@@ -87,13 +87,12 @@ namespace Hearthrock.Server.Services
 
         public int AddPlayResult(PlayResult result)
         {
-            
             if (connection?.State != ConnectionState.Open)
             {
-                connection=new MySqlConnection(connString);
+                connection = new MySqlConnection(connString);
                 connection.Open();
             }
-            var cmd =new MySqlCommand(InsertPlayResultSql,connection);
+            var cmd = new MySqlCommand(InsertPlayResultSql, connection);
             cmd.Parameters.AddWithValue("@player", result.PlayerName);
             cmd.Parameters.AddWithValue("@session", result.Session);
             cmd.Parameters.AddWithValue("@win", result.Won);
@@ -109,6 +108,33 @@ namespace Hearthrock.Server.Services
         {
             Task.Run(() => { AddPlayResult(result); });
         }
+
+        public IEnumerable<dynamic> GetPlaySummary()
+        {
+            var sql = @"select player,count(*) as total,sum(win) as win,sum(win)/count(*) as rate from playresult
+            where logtime>current_date()
+            group by player";
+            if (connection == null)
+            {
+                connection = new MySqlConnection(connString);
+                connection.Open();
+            }
+            var da = new MySqlDataAdapter(sql, connection);
+            var dt = new DataTable();
+            da.Fill(dt);
+            var lst = new List<dynamic>();
+            foreach (DataRow row in dt.Rows)
+            {
+                lst.Add(new
+                {
+                    Player = Convert.ToString(row["player"]),
+                    Total = Convert.ToString(row["total"]),
+                    Win = Convert.ToString(row["win"]),
+                    Rate = Convert.ToString(row["rate"]),
+                });
+            }
+
+            return lst;
+        }
     }
-    
 }

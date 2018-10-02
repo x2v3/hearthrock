@@ -285,6 +285,7 @@ namespace Hearthrock.Engine
                     return 5;
 
                 case RockPegasusGameState.WaitForPlay:
+                    gameStateMonitor?.AddGameOverListener();
                     return this.OnRockAction();
 
                 case RockPegasusGameState.WaitForMulligan:
@@ -317,11 +318,12 @@ namespace Hearthrock.Engine
                         tracer.UploadPlayResult(result);
                         logFile?.WriteLog("GameOver " + result.PlayerName + "  " + result.Session + "  " + result.Won);
                         this.sessionId = Guid.NewGuid().ToString();
+                        ResetGameStateMonitor();
                     });
                     gameStateMonitor.GameStart += GameStateMonitor_GameStart;
                 }
                 gameStateMonitor.AddGameOverListener();
-                gameStateMonitor.AddCreateGameListener();
+                //gameStateMonitor.AddCreateGameListener();
                 logFile?.WriteLog("listener installed.");
             }
             catch (Exception e)
