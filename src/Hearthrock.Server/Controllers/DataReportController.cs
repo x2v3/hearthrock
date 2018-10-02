@@ -51,7 +51,6 @@ namespace Hearthrock.Server.Controllers
             }
 
             r.Content = sb.ToString();
-            r.ContentType = "plain/text";
             return r;
         }
     }
