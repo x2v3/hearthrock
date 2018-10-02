@@ -16,7 +16,7 @@ namespace Hearthrock.Server.Services
             connString = connstr;
         }
 
-        private MySqlConnection connection;
+        //private MySqlConnection connection;
         private string connString;
 
         private const string InsertPlaySql =
@@ -27,13 +27,16 @@ namespace Hearthrock.Server.Services
 
         private const string InsertPlayResultSql = "replace into playresult (player,session, win) values (@player,@session,@win);";
 
+        private MySqlConnection GetConnection()
+        {
+            var c = new MySqlConnection(connString);
+            c.Open();
+            return c;
+        }
+
         public int AddPlayLog(RockScene scene, RockAction action)
         {
-            if (connection?.State != ConnectionState.Open)
-            {
-                connection = new MySqlConnection(connString);
-                connection.Open();
-            }
+            var connection = GetConnection();
             var cmd = new MySqlCommand(InsertPlaySql, connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
@@ -54,11 +57,7 @@ namespace Hearthrock.Server.Services
 
         public int AddErrorLog(RockScene scene, Exception exception)
         {
-            if (connection?.State != ConnectionState.Open)
-            {
-                connection = new MySqlConnection(connString);
-                connection.Open();
-            }
+            var connection = GetConnection();
             var cmd = new MySqlCommand(InsertErrorSql, connection);
             cmd.Parameters.AddWithValue("@session", scene.SessionId);
             cmd.Parameters.AddWithValue("@turn", scene.Turn);
@@ -87,11 +86,7 @@ namespace Hearthrock.Server.Services
 
         public int AddPlayResult(PlayResult result)
         {
-            if (connection?.State != ConnectionState.Open)
-            {
-                connection = new MySqlConnection(connString);
-                connection.Open();
-            }
+            var connection = GetConnection();
             var cmd = new MySqlCommand(InsertPlayResultSql, connection);
             cmd.Parameters.AddWithValue("@player", result.PlayerName);
             cmd.Parameters.AddWithValue("@session", result.Session);
@@ -114,11 +109,7 @@ namespace Hearthrock.Server.Services
             var sql = @"select player,count(*) as total,sum(win) as win,sum(win)/count(*) as rate from playresult
             where logtime>current_date()
             group by player";
-            if (connection == null)
-            {
-                connection = new MySqlConnection(connString);
-                connection.Open();
-            }
+            var connection = GetConnection();
             var da = new MySqlDataAdapter(sql, connection);
             var dt = new DataTable();
             da.Fill(dt);
