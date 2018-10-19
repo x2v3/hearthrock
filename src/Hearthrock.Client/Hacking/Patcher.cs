@@ -217,7 +217,8 @@ namespace Hearthrock.Client.Hacking
             var result = sha.ComputeHash(File.ReadAllBytes(path));
 
             string hex = BitConverter.ToString(result);
-            return hex.Replace("-", string.Empty);
+            hex= hex.Replace("-", string.Empty);
+            return hex;
         }
 
         /// <summary>
