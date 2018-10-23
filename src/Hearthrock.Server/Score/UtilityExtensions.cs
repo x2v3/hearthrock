@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
+using HearthLearning.ML;
 using Hearthrock.Contracts;
 using Newtonsoft.Json;
 using SabberStoneCore.Enums;
+using SabberStoneCore.Model;
 
 namespace Hearthrock.Server.Score
 {
@@ -97,6 +99,55 @@ namespace Hearthrock.Server.Score
             }
 
             return rc;
+        }
+
+        public static SceneData GetSceneData(this RockScene scene)
+        {
+            var data = new SceneData();
+            data.OpHasLifeSteal = scene.Opponent.Minions.Any(m => m.HasLifesteal) ? 1 : 0;
+            data.OpHasWindFury = scene.Opponent.Minions.Any(m => m.HasWindfury) ? 1: 0;
+            data.OpHeroAttackDamage = scene.Opponent.Hero.Damage;
+            data.OpHeroClass = (int) scene.Opponent.Hero.Class;
+            data.OpHeroHealth = scene.Opponent.Hero.Health;
+            data.OpMinionsAttackDamage = scene.Opponent.Minions.Sum(m => m.Damage);
+            data.OpMinionsHealth = scene.Opponent.Minions.Sum(m => m.Health);
+            data.OpTauntMinionHealth = scene.Opponent.Minions.Where(m => m.HasTaunt).Sum(m => m.Health);
+            data.Round = scene.Turn;
+            data.SelfHasLifeSteal=scene.Self.Minions.Any(m=>m.HasLifesteal)?1:0;
+            data.SelfHasWindFury = scene.Self.Minions.Any(m => m.HasWindfury) ? 1 : 0;
+            data.SelfHeroAttackDamage = scene.Self.Hero.Damage;
+            data.SelfHeroClass = (int) scene.Self.Hero.Class;
+            data.SelfHeroHealth = scene.Self.Hero.Health;
+            data.SelfMinionsAttackDamage = scene.Self.Minions.Sum(m => m.Damage);
+            data.SelfMinionsHealth = scene.Self.Minions.Sum(m => m.Health);
+            data.SelfTauntMinionHealth = scene.Self.Minions.Where(m => m.HasTaunt).Sum(m => m.Health);
+            return data;
+        }
+
+        public static SceneData GetSceneData(this Game game)
+        {
+            //todo  check hero class code.
+            var data = new SceneData();
+            var p1Minions = game.Player1.BoardZone.GetAll();
+            var p2Minions = game.Player2.BoardZone.GetAll();
+            data.OpHasLifeSteal = p2Minions.Any(m=>m.HasLifeSteal) ? 1 : 0;
+            data.OpHasWindFury = p2Minions.Any(m => m.HasWindfury) ? 1: 0;
+            data.OpHeroAttackDamage = game.Player2.Hero.AttackDamage;
+            //data.OpHeroClass = (int) scene.Opponent.Hero.Class;
+            data.OpHeroHealth = game.Player2.Hero.Health + game.Player2.Hero.Armor;
+            data.OpMinionsAttackDamage = p2Minions.Sum(m => m.Damage);
+            data.OpMinionsHealth = p2Minions.Sum(m => m.Health);
+            data.OpTauntMinionHealth = p2Minions.Where(m => m.HasTaunt).Sum(m => m.Health);
+            //data.Round = scene.Turn;
+            data.SelfHasLifeSteal= p1Minions.Any(m=>m.HasLifeSteal)?1:0;
+            data.SelfHasWindFury = p1Minions.Any(m => m.HasWindfury) ? 1 : 0;
+            data.SelfHeroAttackDamage = game.Player1.Hero.Damage;
+            //data.SelfHeroClass = (int) scene.Self.Hero.Class;
+            data.SelfHeroHealth = game.Player1.Hero.Health;
+            data.SelfMinionsAttackDamage = p1Minions.Sum(m => m.Damage);
+            data.SelfMinionsHealth = p1Minions.Sum(m => m.Health);
+            data.SelfTauntMinionHealth = p1Minions.Where(m => m.HasTaunt).Sum(m => m.Health);
+            return data;
         }
     }
 }

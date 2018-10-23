@@ -27,9 +27,11 @@ namespace Hearthrock.Server
         public void ConfigureServices(IServiceCollection services)
         {
             var actionDbConnStr = Configuration.GetSection("DB:PlayLogDB").Get<string>();
-
+            var config = new Config(){ PlayDBConnectionString = actionDbConnStr};
+            services.AddSingleton(config);
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddActionLogService(actionDbConnStr);
+            services.AddSingleton<IScoringService,ScoringService>();
             services.AddMyExperimentBot();
             //services.AddPunchFaceBot();
             //services.AddBuiltinBot();

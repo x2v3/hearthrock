@@ -11,14 +11,16 @@ namespace Hearthrock.Server.Bots
 {
     public class MyExperimentBot : IRockBot
     {
-        public MyExperimentBot(ActionLogService logService, ILoggerFactory loggerFactory)
+        public MyExperimentBot(ActionLogService logService, ILoggerFactory loggerFactory,IScoringService scoreService)
         {
             actionLog = logService;
             consoleLogger = loggerFactory.CreateLogger(this.GetType());
+            this.scoreService = scoreService;
         }
 
         private ActionLogService actionLog;
         private ILogger consoleLogger;
+        private IScoringService scoreService;
 
         public RockAction GetMulliganAction(RockScene scene)
         {
@@ -46,7 +48,7 @@ namespace Hearthrock.Server.Bots
                         for (int i = 0; i <= scene.Self.Minions.Count; i++)
                         {
 
-                            var engine = new SimulationEngine(scene);
+                            var engine = new SimulationEngine(scene,null,scoreService);
                             engine.ResetHeroMana();
                             var action = RockAction.Create(option);
                             action.Slot = i;
@@ -56,7 +58,7 @@ namespace Hearthrock.Server.Bots
                     }
                     else
                     {
-                        var engine = new SimulationEngine(scene);
+                        var engine = new SimulationEngine(scene,null,scoreService);
                         engine.ResetHeroMana();
                         var action = RockAction.Create(option);
                         var score = engine.SimulateAction(action);

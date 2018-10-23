@@ -21,11 +21,12 @@ namespace Hearthrock.Server.Score
 {
     public class SimulationEngine
     {
-        public SimulationEngine(RockScene scene, ActionLogService dbLogService = null)
+        public SimulationEngine(RockScene scene, ActionLogService dbLogService ,IScoringService scoringService)
         {
             currentScene = scene;
             game = BuildGameFromScene(currentScene);
             this.dbLogService = dbLogService;
+            this.scoringService = scoringService;
         }
 
 
@@ -34,6 +35,7 @@ namespace Hearthrock.Server.Score
         private Game game;
         private int maxSimulationDepth = 10;
         private ActionLogService dbLogService;
+        private IScoringService scoringService;
 
         public int SimulateAction(RockAction action, bool simulateFollowingOptions = false)
         {
@@ -172,8 +174,27 @@ namespace Hearthrock.Server.Score
 
         private int CalculateGameScore(Game game)
         {
-            var score = new PlayerScore { Controller = game.Player1 };
-            return score.Rate();
+            //var score = new PlayerScore { Controller = game.Player1 };
+            //return score.Rate();
+            var data = game.GetSceneData();
+            // turn and hero class is store and trained with RockScene, so we have to use RockXXX
+            data.Round = currentScene.Turn;
+            data.SelfHeroClass = (int) currentScene.Self.Hero.Class;
+            data.OpHeroClass = (int) currentScene.Opponent.Hero.Class;
+            var score = 0;
+            try
+            {
+                score = scoringService.GetScore(data);
+            }
+            catch (Exception e)
+            {
+                // fallback
+                
+                var ps  = new PlayerScore { Controller = game.Player1 };
+                return ps.Rate();
+            }
+
+            return score;
         }
 
         private Game BuildGameFromScene(RockScene scene)
