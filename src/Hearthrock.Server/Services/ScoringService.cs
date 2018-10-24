@@ -63,8 +63,7 @@ namespace Hearthrock.Server.Services
 
         public void TrainAsync(bool swapPlayer=false)
         {
-            Task t = Task.Run(new Action(() => { Train(swapPlayer);}));
-            t.Start();
+            Task.Run(new Action(() => { Train(swapPlayer);}));
         }
 
     }
