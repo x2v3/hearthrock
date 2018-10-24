@@ -32,8 +32,8 @@ namespace Hearthrock.Server.Services
             }
         }
 
-        private Config config;
-        private ILogger logger;
+        private readonly Config config;
+        private readonly ILogger logger;
         private PredictionModel<SceneData, ScenePrediction> model;
 
         public int GetScore(SceneData data)
@@ -59,6 +59,12 @@ namespace Hearthrock.Server.Services
             model = t.BuildAndTrain(data,testData);
             var filePath = Path.Combine(Environment.CurrentDirectory, "score.model");
             model.WriteAsync(filePath);
+        }
+
+        public void TrainAsync()
+        {
+            Task t = Task.Run(new Action(Train));
+            t.Start();
         }
 
     }
