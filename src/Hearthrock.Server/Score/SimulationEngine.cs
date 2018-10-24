@@ -42,8 +42,7 @@ namespace Hearthrock.Server.Score
             var finalScore = 0;
             try
             {
-
-                var score1 = CalculateGameScore(game);
+                
                 var p1 = game.Player1;
                 if (action.Objects.Count == 1)
                 {
@@ -124,14 +123,12 @@ namespace Hearthrock.Server.Score
                 {
                     var bestResult = FindBestFollowingResult(game);
                     game.Process(EndTurnTask.Any(game.Player1));
-                    var score2 = CalculateGameScore(bestResult);
-                    finalScore = score2 - score1;
+                    finalScore = CalculateGameScore(bestResult);
                 }
                 else
                 {
                     game.Process(EndTurnTask.Any(game.Player1));
-                    var score2 = CalculateGameScore(game);
-                    finalScore = score2 - score1;
+                    finalScore = CalculateGameScore(game);
                 }
 
             }

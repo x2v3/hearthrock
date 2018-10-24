@@ -14,12 +14,12 @@ namespace Hearthrock.Server.Bots
         public MyExperimentBot(ActionLogService logService, ILoggerFactory loggerFactory,IScoringService scoreService)
         {
             actionLog = logService;
-            consoleLogger = loggerFactory.CreateLogger(this.GetType());
+            logger = loggerFactory.CreateLogger(this.GetType());
             this.scoreService = scoreService;
         }
 
         private ActionLogService actionLog;
-        private ILogger consoleLogger;
+        private ILogger logger;
         private IScoringService scoreService;
 
         public RockAction GetMulliganAction(RockScene scene)
@@ -53,6 +53,7 @@ namespace Hearthrock.Server.Bots
                             var action = RockAction.Create(option);
                             action.Slot = i;
                             var score = engine.SimulateAction(action);
+                            logger.LogInformation($"action:[{string.Join("=>",action.Objects)},slot {action.Slot}] got score:{score}");
                             actionScores.Add(new KeyValuePair<RockAction, int>(action, score));
                         }
                     }
@@ -73,7 +74,7 @@ namespace Hearthrock.Server.Bots
             }
             catch (Exception e)
             {
-                consoleLogger.LogError(e, "GetPlayAction Error");
+                logger.LogError(e, "GetPlayAction Error");
                 actionLog.AddErrorLogAsnycNoResult(scene, e);
                 if (scene.PlayOptions.Any())
                 {
