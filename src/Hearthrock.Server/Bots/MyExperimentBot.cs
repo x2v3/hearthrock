@@ -63,6 +63,7 @@ namespace Hearthrock.Server.Bots
                         engine.ResetHeroMana();
                         var action = RockAction.Create(option);
                         var score = engine.SimulateAction(action);
+                        logger.LogInformation($"action:[{string.Join("=>",action.Objects)},slot {action.Slot}] got score:{score}");
                         actionScores.Add(new KeyValuePair<RockAction, int>(action, score));
 
                     }
