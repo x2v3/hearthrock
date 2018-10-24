@@ -48,22 +48,22 @@ namespace Hearthrock.Server.Services
             return (int)(prediction.Score * 10000);
         }
         
-        public void Train()
+        public void Train(bool swapPlayer=false)
         {
             
             var dr = new MysqlDbDataReader(config.PlayDBConnectionString);
             var t = new Trainer();
             var tmatch = dr.GetMatches(1500, 0);
-            var data = Helper.MatchToSceneData(tmatch);
-            var testData = Helper.MatchToSceneData(dr.GetMatches(100, 1500));
+            var data = Helper.MatchToSceneData(tmatch,swapPlayer);
+            var testData = Helper.MatchToSceneData(dr.GetMatches(100, 1500),swapPlayer);
             model = t.BuildAndTrain(data,testData);
             var filePath = Path.Combine(Environment.CurrentDirectory, "score.model");
             model.WriteAsync(filePath);
         }
 
-        public void TrainAsync()
+        public void TrainAsync(bool swapPlayer=false)
         {
-            Task t = Task.Run(new Action(Train));
+            Task t = Task.Run(new Action(() => { Train(swapPlayer);}));
             t.Start();
         }
 

@@ -20,10 +20,10 @@ namespace Hearthrock.Server.Controllers
         private readonly ILogger logger;
         private readonly ScoringService scoringService;
 
-        [Route("retrain")]
-        public ActionResult RetrainModel()
+        [Route("retrain/{swap}")]
+        public ActionResult RetrainModel([FromRoute]bool swap=false)
         {
-            scoringService.TrainAsync();
+            scoringService.TrainAsync(swap);
             logger.LogWarning("Start training from API call.");
             return Ok(null);
         }

@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HearthLearning" Version="1.0.0.1" />
+    <PackageReference Include="HearthLearning" Version="1.0.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="MySql.Data" Version="8.0.13" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="3.0.0" />
