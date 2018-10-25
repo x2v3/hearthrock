@@ -47,7 +47,16 @@ namespace Hearthrock.Server.Services
             }
             var prediction = model.Predict(data);
             logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:[{string.Join(',',prediction.Score)}], probability:{prediction.Probability}");
-            return (int)(prediction.Score[prediction.Win-1] * 10000)* (prediction.Win==2?1:-1);
+            var score = 0f;
+            if(prediction.Win==2)
+            {
+                score = 1 / prediction.Score[1];
+            }
+            else
+            {
+                score = -1 * prediction.Score[0];
+            }
+            return (int)(score * 10000);
         }
         
         public void Train(bool swapPlayer=false)
