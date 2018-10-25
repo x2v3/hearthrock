@@ -46,7 +46,7 @@ namespace Hearthrock.Server.Services
                 throw new ModelNotInitializedException();
             }
             var prediction = model.Predict(data);
-            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:{prediction.Score}, probability:{prediction.Probability}");
+            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:[{string.Join(',',prediction.Score)}], probability:{prediction.Probability}");
             return (int)(prediction.Score[prediction.Win] * 10000)* (prediction.Win==1?1:-1);
         }
         

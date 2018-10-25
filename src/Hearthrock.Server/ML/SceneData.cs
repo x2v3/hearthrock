@@ -59,8 +59,9 @@ namespace Hearthrock.Server.ML
     public class ScenePrediction
     {
         [ColumnName("PredictedLabel")]
-        public int Win { get; set; }
-        [ColumnName("Probability")]
+        public uint Win { get; set; }
+        //[ColumnName("Probability")]
+        [NoColumn]
         public float Probability { get; set; }
         [ColumnName("Score")]
         public float[] Score { get; set; }
