@@ -69,21 +69,21 @@ namespace Hearthrock.Server.Services
             var pipeline = new LearningPipeline();
             pipeline.Add(cs);
             pipeline.Add(new ColumnCopier(("win", "Label")));
-            pipeline.Add(new CategoricalOneHotVectorizer("selfHeroClass", "opHeroClass"));
+            //pipeline.Add(new CategoricalOneHotVectorizer("selfHeroClass", "opHeroClass"));
             pipeline.Add(new ColumnConcatenator("Features"
-                , "selfHeroClass"
-                , "opHeroClass"
-                , "round"
+                //, "selfHeroClass"
+                //, "opHeroClass"
+                //, "round"
                 , "selfHeroHealth"
                 , "opHeroHealth"
                 , "selfMinionsHealth"
                 , "opMinionsHealth"
                 , "selfMinionsAttackDamage"
                 , "opMinionsAttackDamage"
-                , "selfHasWindFury"
-                , "opHasWindFury"
-                , "selfHasLifeSteal"
-                , "opHasLifeSteal"
+                //, "selfHasWindFury"
+                //, "opHasWindFury"
+                //, "selfHasLifeSteal"
+                //, "opHasLifeSteal"
                 , "selfTauntMinionsHealth"
                 , "opTauntMinionsHealth"
                 , "selfHeroAttackDamage"
