@@ -88,6 +88,10 @@ namespace Hearthrock.Server.Services
                 , "opTauntMinionsHealth"
                 , "selfHeroAttackDamage"
                 , "opHeroAttackDamage"
+                , "diffHeroHealth"
+                , "diffMinionsHealth"
+                , "diffAttackDamage"
+                , "diffTauntMinionsHealth"
             ));
             var classifier = new LogisticRegressionBinaryClassifier();
 
