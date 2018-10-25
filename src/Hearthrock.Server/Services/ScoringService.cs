@@ -47,8 +47,8 @@ namespace Hearthrock.Server.Services
                 throw new ModelNotInitializedException();
             }
             var prediction = model.Predict(data);
-            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:{prediction.Probability}");
-            return (int)(prediction.Probability * 10000)* (prediction.Win?1:-1);
+            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:{prediction.Score}, probability:{prediction.Probability}");
+            return (int)(prediction.Score * 10000)* (prediction.Win?1:-1);
         }
         
         public void Train(bool swapPlayer=false)
@@ -69,21 +69,21 @@ namespace Hearthrock.Server.Services
             var pipeline = new LearningPipeline();
             pipeline.Add(cs);
             pipeline.Add(new ColumnCopier(("win", "Label")));
-            //pipeline.Add(new CategoricalOneHotVectorizer("selfHeroClass", "opHeroClass"));
+            pipeline.Add(new CategoricalOneHotVectorizer("selfHeroClass", "opHeroClass"));
             pipeline.Add(new ColumnConcatenator("Features"
-                //, "selfHeroClass"
-                //, "opHeroClass"
-                //, "round"
+                , "selfHeroClass"
+                , "opHeroClass"
+                , "round"
                 , "selfHeroHealth"
                 , "opHeroHealth"
                 , "selfMinionsHealth"
                 , "opMinionsHealth"
                 , "selfMinionsAttackDamage"
                 , "opMinionsAttackDamage"
-                //, "selfHasWindFury"
-                //, "opHasWindFury"
-                //, "selfHasLifeSteal"
-                //, "opHasLifeSteal"
+                , "selfHasWindFury"
+                , "opHasWindFury"
+                , "selfHasLifeSteal"
+                , "opHasLifeSteal"
                 , "selfTauntMinionsHealth"
                 , "opTauntMinionsHealth"
                 , "selfHeroAttackDamage"
