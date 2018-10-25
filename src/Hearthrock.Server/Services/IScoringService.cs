@@ -1,5 +1,5 @@
-﻿using HearthLearning.ML;
-using Hearthrock.Contracts;
+﻿using Hearthrock.Contracts;
+using Hearthrock.Server.ML;
 
 namespace Hearthrock.Server.Services
 {

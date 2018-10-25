@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using HearthLearning.DataReader;
-using HearthLearning.ML;
 using Hearthrock.Contracts;
+using Hearthrock.Server.ML;
 using Hearthrock.Server.Score;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML.Legacy;
@@ -21,11 +20,11 @@ namespace Hearthrock.Server.Services
         {
             config = cfg;
             logger = loggerFactory.CreateLogger(this.GetType());
-            var trainer = new Trainer();
             var filePath = Path.Combine(Environment.CurrentDirectory, "score.model");
             if (File.Exists(filePath))
             {
-                model = trainer.LoadModel(filePath);
+
+                model = LoadModel(filePath);
                 logger.LogInformation("local model file loaded.");
             }
             else
@@ -48,7 +47,7 @@ namespace Hearthrock.Server.Services
             }
             var prediction = model.Predict(data);
             logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:{prediction.Score}, probability:{prediction.Probability}");
-            return (int)(prediction.Score * 10000)* (prediction.Win?1:-1);
+            return (int)(prediction.Score[prediction.Win] * 10000)* (prediction.Win==1?1:-1);
         }
         
         public void Train(bool swapPlayer=false)
@@ -62,6 +61,11 @@ namespace Hearthrock.Server.Services
             model.WriteAsync(filePath);
         }
 
+        public PredictionModel<SceneData, ScenePrediction> LoadModel(string file)
+        {
+            var t = PredictionModel.ReadAsync<SceneData, ScenePrediction>(file);
+            return t.GetAwaiter().GetResult();
+        }
 
         public PredictionModel<SceneData, ScenePrediction> BuildAndTrain(List<SceneData> data, List<SceneData> testdata)
         {
@@ -93,14 +97,14 @@ namespace Hearthrock.Server.Services
                 , "diffAttackDamage"
                 , "diffTauntMinionsHealth"
             ));
-            var classifier = new FastTreeTweedieRegressor();
-
-            pipeline.Add(classifier);
+            var a = new KMeansPlusPlusClusterer();
+            a.K = 2;
+            pipeline.Add(a);
             model = pipeline.Train<SceneData, ScenePrediction>();
 
-            var eva = new Microsoft.ML.Legacy.Models.RegressionEvaluator();
+            var eva = new Microsoft.ML.Legacy.Models.ClusterEvaluator();
             var m = eva.Evaluate(model, CollectionDataSource.Create(testdata));
-            Console.WriteLine($"rms:{m.Rms}");
+            logger.LogWarning($"AvgMinScore:{m.AvgMinScore}");
             //Console.WriteLine($"acc:{m.Accuracy}");
             //Console.WriteLine($"auc:{m.Auc}");
             return model;
