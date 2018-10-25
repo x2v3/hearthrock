@@ -74,34 +74,35 @@ namespace Hearthrock.Server.Services
                 , "selfHeroClass"
                 , "opHeroClass"
                 , "round"
-                , "selfHeroHealth"
-                , "opHeroHealth"
-                , "selfMinionsHealth"
-                , "opMinionsHealth"
-                , "selfMinionsAttackDamage"
-                , "opMinionsAttackDamage"
+                //, "selfHeroHealth"
+                //, "opHeroHealth"
+                //, "selfMinionsHealth"
+                //, "opMinionsHealth"
+                //, "selfMinionsAttackDamage"
+                //, "opMinionsAttackDamage"
                 , "selfHasWindFury"
                 , "opHasWindFury"
                 , "selfHasLifeSteal"
                 , "opHasLifeSteal"
                 , "selfTauntMinionsHealth"
                 , "opTauntMinionsHealth"
-                , "selfHeroAttackDamage"
-                , "opHeroAttackDamage"
+                //, "selfHeroAttackDamage"
+                //, "opHeroAttackDamage"
                 , "diffHeroHealth"
                 , "diffMinionsHealth"
                 , "diffAttackDamage"
                 , "diffTauntMinionsHealth"
             ));
-            var classifier = new LogisticRegressionBinaryClassifier();
+            var classifier = new FastTreeTweedieRegressor();
 
             pipeline.Add(classifier);
             model = pipeline.Train<SceneData, ScenePrediction>();
 
-            var eva = new Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator();
+            var eva = new Microsoft.ML.Legacy.Models.RegressionEvaluator();
             var m = eva.Evaluate(model, CollectionDataSource.Create(testdata));
-            Console.WriteLine($"acc:{m.Accuracy}");
-            Console.WriteLine($"auc:{m.Auc}");
+            Console.WriteLine($"rms:{m.Rms}");
+            //Console.WriteLine($"acc:{m.Accuracy}");
+            //Console.WriteLine($"auc:{m.Auc}");
             return model;
         }
 
