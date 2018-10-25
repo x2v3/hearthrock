@@ -10,7 +10,7 @@ namespace Hearthrock.Server.ML
     public class SceneData
     {
         [Column("win","win")]
-        public float Win { get; set; }
+        public uint Win { get; set; }
         [Column("selfHeroClass","selfHeroClass")]
         public float SelfHeroClass { get; set; }
         [Column("opHeroClass","opHeroClass")]
