@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hearthrock.Contracts;
 using Hearthrock.Server.Services;
+using Hearthrock.Server.Simulation;
 using SabberStoneCore.Actions;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -37,7 +38,7 @@ namespace Hearthrock.Server.Score
         private ActionLogService dbLogService;
         private IScoringService scoringService;
 
-        public int SimulateAction(RockAction action, bool simulateFollowingOptions = false)
+        public int SimulateAction(RockAction action, bool simulateFollowingOptions = true)
         {
             var finalScore = 0;
             try
@@ -141,32 +142,17 @@ namespace Hearthrock.Server.Score
 
         private Game FindBestFollowingResult(Game g)
         {
-            var gameCopy = g.Clone();
             try
             {
-
-                var p1Score = new PlayerScore();
-                p1Score.Controller = gameCopy.Player1;
-
-                List<OptionNode> solutions = OptionNode.GetSolutions(gameCopy, gameCopy.Player1.Id, p1Score, maxSimulationDepth, 500);
-
-                var solution = new List<PlayerTask>();
-                solutions.OrderByDescending(p => p.Score).First().PlayerTasks(ref solution);
-
-                foreach (PlayerTask task in solution)
-                {
-                    Console.WriteLine(task.FullPrint());
-                    gameCopy.Process(task);
-                    if (gameCopy.CurrentPlayer.Choice != null)
-                        break;
-                }
+                var node = new Node(g,0,scoringService,null);
+                return node.BestResult.Game;
             }
             catch (Exception e)
             {
                 dbLogService?.AddErrorLogAsnycNoResult(currentScene, e);
             }
 
-            return gameCopy;
+            return g;
         }
 
         private int CalculateGameScore(Game game)
