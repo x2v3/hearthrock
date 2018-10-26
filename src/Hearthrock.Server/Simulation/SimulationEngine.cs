@@ -123,7 +123,7 @@ namespace Hearthrock.Server.Score
                 if (simulateFollowingOptions)
                 {
                     var bestResult = FindBestFollowingResult(game);
-                    game.Process(EndTurnTask.Any(game.Player1));
+                    bestResult.Process(EndTurnTask.Any(game.Player1));
                     finalScore = CalculateGameScore(bestResult);
                 }
                 else
