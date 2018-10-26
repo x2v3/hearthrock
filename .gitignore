@@ -1,2 +1,4 @@
 
 src/Hearthrock\.Server/appsettings\.Development\.json
+
+src/Hearthrock\.Server/score\.model

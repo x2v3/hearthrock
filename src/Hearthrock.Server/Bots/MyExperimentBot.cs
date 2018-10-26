@@ -41,9 +41,18 @@ namespace Hearthrock.Server.Bots
             try
             {
                 var actionScores = new List<KeyValuePair<RockAction, int>>();
+                scene.PlayOptions.Add(new List<int>()); //add end-turn option
                 foreach (var option in scene.PlayOptions)
                 {
-                    if (scene.Self.GetObjectById(option[0]) is RockCard c &&c.CardType== RockCardType.Minion)
+                    if (option.Count == 0)
+                    {
+                        // end turn.
+                        var engine = new SimulationEngine(scene,null,scoreService);
+                        var action = RockAction.Create(option);
+                        var score = engine.SimulateAction(action);
+                        actionScores.Add(new KeyValuePair<RockAction, int>(action, score));
+                    }
+                    else if (scene.Self.GetObjectById(option[0]) is RockCard c &&c.CardType== RockCardType.Minion)
                     {
                         for (int i = 0; i <= scene.Self.Minions.Count; i++)
                         {
