@@ -45,6 +45,10 @@ namespace Hearthrock.Server.ML
         public float SelfHeroAttackDamage { get; set; }
         [ColumnName("opHeroAttackDamage")]
         public float OpHeroAttackDamage { get; set; }
+        [ColumnName("selfCardsInHand")]
+        public float SelfCardsInHand { get; set; }
+        [ColumnName("opCardsInHand")]
+        public float OpCardsInHand { get; set; }
         [ColumnName("diffHeroHealth")]
         public float DiffHeroHealth => SelfHeroHealth - OpHeroHealth;
         [ColumnName("diffMinionsHealth")]

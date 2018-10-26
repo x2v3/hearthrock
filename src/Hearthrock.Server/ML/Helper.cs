@@ -37,6 +37,7 @@ namespace Hearthrock.Server.ML
                         OpTauntMinionHealth = op.Minions.Where(m=>m.HasTaunt).Sum(m=>m.Health),
                         OpHeroClass = (int)op.Hero.Class,
                         OpMinionsAttackDamage = op.Minions.Sum(m=>m.Damage),
+                        OpCardsInHand = op.Cards?.Count??0,
 
                         SelfHasLifeSteal = self.Minions.Any(m=>m.HasLifesteal)?1:0,
                         SelfHasWindFury = self.Minions.Any(m=>m.HasWindfury)?1:0,
@@ -45,7 +46,9 @@ namespace Hearthrock.Server.ML
                         SelfMinionsAttackDamage = self.Minions.Sum(m=>m.Damage),
                         SelfHeroHealth = self.Hero.Health,
                         SelfHeroAttackDamage = op.Hero.Damage,
-                        SelfHeroClass = (int)self.Hero.Class
+                        SelfHeroClass = (int)self.Hero.Class,
+                        SelfCardsInHand = self.Cards?.Count??0
+                        
                     };
                     list.Add(sd);
                 }

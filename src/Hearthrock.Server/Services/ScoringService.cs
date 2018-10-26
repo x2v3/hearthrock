@@ -16,7 +16,7 @@ namespace Hearthrock.Server.Services
 {
     public class ScoringService : IScoringService
     {
-        public ScoringService(ILoggerFactory loggerFactory,Config cfg)
+        public ScoringService(ILoggerFactory loggerFactory, Config cfg)
         {
             config = cfg;
             logger = loggerFactory.CreateLogger(this.GetType());
@@ -46,9 +46,9 @@ namespace Hearthrock.Server.Services
                 throw new ModelNotInitializedException();
             }
             var prediction = model.Predict(data);
-            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:[{string.Join(',',prediction.Score)}], probability:{prediction.Probability}");
+            logger.LogInformation($"scene:round {data.Round},prediction win:{prediction.Win}, score:[{string.Join(',', prediction.Score)}], probability:{prediction.Probability}");
             var score = 0f;
-            if(prediction.Win==2)
+            if (prediction.Win == 2)
             {
                 score = 1 / prediction.Score[1];
             }
@@ -58,14 +58,14 @@ namespace Hearthrock.Server.Services
             }
             return (int)(score * 10000);
         }
-        
-        public void Train(bool swapPlayer=false)
+
+        public void Train(bool swapPlayer = false)
         {
             var dr = new MysqlDbDataReader(config.PlayDBConnectionString);
             var tmatch = dr.GetMatches(1500, 0);
-            var data = Helper.MatchToSceneData(tmatch,swapPlayer);
-            var testData = Helper.MatchToSceneData(dr.GetMatches(100, 1500),swapPlayer);
-            model = BuildAndTrain(data,testData);
+            var data = Helper.MatchToSceneData(tmatch, swapPlayer);
+            var testData = Helper.MatchToSceneData(dr.GetMatches(100, 1500), swapPlayer);
+            model = BuildAndTrain(data, testData);
             var filePath = Path.Combine(Environment.CurrentDirectory, "score.model");
             model.WriteAsync(filePath);
         }
@@ -87,12 +87,12 @@ namespace Hearthrock.Server.Services
                 , "selfHeroClass"
                 , "opHeroClass"
                 , "round"
-                //, "selfHeroHealth"
-                //, "opHeroHealth"
-                //, "selfMinionsHealth"
-                //, "opMinionsHealth"
-                //, "selfMinionsAttackDamage"
-                //, "opMinionsAttackDamage"
+                , "selfHeroHealth"
+                , "opHeroHealth"
+                , "selfMinionsHealth"
+                , "opMinionsHealth"
+                , "selfMinionsAttackDamage"
+                , "opMinionsAttackDamage"
                 , "selfHasWindFury"
                 , "opHasWindFury"
                 , "selfHasLifeSteal"
@@ -105,9 +105,10 @@ namespace Hearthrock.Server.Services
                 , "diffMinionsHealth"
                 , "diffAttackDamage"
                 , "diffTauntMinionsHealth"
+                , "selfCardsInHand"
+                , "opCardsInHand"
             ));
-            var a = new KMeansPlusPlusClusterer();
-            a.K = 2;
+            var a = new KMeansPlusPlusClusterer {K = 2};
             pipeline.Add(a);
             model = pipeline.Train<SceneData, ScenePrediction>();
 
@@ -119,9 +120,9 @@ namespace Hearthrock.Server.Services
             return model;
         }
 
-        public void TrainAsync(bool swapPlayer=false)
+        public void TrainAsync(bool swapPlayer = false)
         {
-            Task.Run(new Action(() => { Train(swapPlayer);}));
+            Task.Run(new Action(() => { Train(swapPlayer); }));
         }
 
     }
