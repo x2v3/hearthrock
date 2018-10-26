@@ -12,7 +12,7 @@ namespace Hearthrock.Server.Simulation
 {
     public class Node
     {
-        public const int MaxSimulateDepth = 2;
+        public const int MaxSimulateDepth = 3;
         public const int MaxSimulateWidth = 10;
 
         public Node(Game originGame, int parentDepth, IScoringService scoringService, PlayerTask task)
